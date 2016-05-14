@@ -64,7 +64,9 @@ struct syntax_tree *parse(void) {
 			for (;;) {
 				c = getc(stdin);
 				if (c == EOF || c == '.' || c == ')') {
-					string_trim_right(&tree->u.action.selector);
+					if (tree->u.action.arg_count == 0 || tree->u.action.arg_indexes[tree->u.action.arg_count-1] < tree->u.action.selector.length) {
+						string_trim_right(&tree->u.action.selector);
+					}
 					if (c == ')') {
 						ungetc(c, stdin);
 					}
