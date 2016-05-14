@@ -31,7 +31,7 @@ static bool selector_matches(const struct string *pattern, const struct action *
 	return p == pattern->length && s == selector->length;
 }
 
-static struct string write_selector;
+static struct string write_line_selector;
 
 static struct string *eval(struct syntax_tree *tree) {
 	switch (tree->kind) {
@@ -39,7 +39,7 @@ static struct string *eval(struct syntax_tree *tree) {
 		return string_clone(&tree->u.literal);
 		break;
 	case syntax_tree_kind_action:
-		if (selector_matches(&write_selector, &tree->u.action)) {
+		if (selector_matches(&write_line_selector, &tree->u.action)) {
 			struct string *s = eval(tree->u.action.args[0]);
 			printf("%*s\n", (int) s->length, s->data);
 			string_free(s);
@@ -60,8 +60,8 @@ static void interp(struct syntax_tree *tree) {
 }
 
 int main() {
-	string_init_empty(&write_selector);
-	string_add_c_string(&write_selector, "write $1");
+	string_init_empty(&write_line_selector);
+	string_add_c_string(&write_line_selector, "write line $1");
 	for (;;) {
 		struct syntax_tree *tree = parse();
 		if (tree) {
