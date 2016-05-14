@@ -1,4 +1,4 @@
-create data type (natural number)
+define data type (natural number)
 	with case (zero)
 	and  case (succ (natural number)).
 
