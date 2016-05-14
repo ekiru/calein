@@ -84,6 +84,7 @@ struct syntax_tree *parse(void) {
 						log_error("Parse error: expected argument");
 						goto action_err;
 					}
+					//printf("Adding arg %lu at %lu\n", tree->u.action.arg_count, tree->u.action.selector.length);
 					tree->u.action.arg_indexes[tree->u.action.arg_count] =
 						tree->u.action.selector.length;
 					tree->u.action.args[tree->u.action.arg_count] = child;

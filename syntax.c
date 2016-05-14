@@ -49,6 +49,7 @@ static void display_with_indent(const struct syntax_tree *tree, size_t indent) {
 			if (current_arg < tree->u.action.arg_count &&
 			    i == tree->u.action.arg_indexes[current_arg]) {
 				printf("$%lu", current_arg + 1);
+				current_arg++;
 			}
 			putchar(tree->u.action.selector.data[i]);
 		}
