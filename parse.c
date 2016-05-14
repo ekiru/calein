@@ -63,10 +63,14 @@ struct syntax_tree *parse(void) {
 			ungetc(c, stdin);
 			for (;;) {
 				c = getc(stdin);
-				if (c == EOF || c == '.') {
+				if (c == EOF || c == '.' || c == ')') {
 					string_trim_right(&tree->u.action.selector);
+					if (c == ')') {
+						ungetc(c, stdin);
+					}
 					return tree;
 				} else if (c == '"' || c == '(') {
+					bool paren = c == '(';
 					if (tree->u.action.arg_count == syntax_tree_max_args) {
 						log_error("Parse error: exceed max arg count %d",
 							syntax_tree_max_args);
@@ -84,6 +88,10 @@ struct syntax_tree *parse(void) {
 						tree->u.action.selector.length;
 					tree->u.action.args[tree->u.action.arg_count] = child;
 					tree->u.action.arg_count++;
+					if (paren && getc(stdin) != ')') {
+						log_error("Subexpression had no close paren.");
+						goto action_err;
+					}
 				} else {
 					if (!string_add_character(&tree->u.action.selector, c)) {
 						goto action_err;
