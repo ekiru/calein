@@ -13,7 +13,14 @@ struct string {
 void string_init_empty(struct string *s);
 void string_finish(struct string *s);
 
+struct string *string_new_empty(void);
+void string_free(struct string *s);
+
+struct string *string_clone(const struct string *s);
+
 bool string_add_character(struct string *s, char c);
+bool string_add_characters(struct string *s, const char *cs, size_t n);
+bool string_add_c_string(struct string *s, const char *cs);
 void string_trim_right(struct string *s);
 
 #endif

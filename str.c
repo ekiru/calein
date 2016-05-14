@@ -12,6 +12,29 @@ void string_finish(struct string *s) {
 	free(s->data);
 }
 
+struct string *string_new_empty(void) {
+	struct string *s = calloc(1, sizeof *s);
+	if (s) {
+		string_init_empty(s);
+	}
+	return s;
+}
+
+void string_free(struct string *s) {
+	if (s) {
+		string_finish(s);
+		free(s);
+	}
+}
+
+struct string *string_clone(const struct string *s) {
+	struct string *clone = string_new_empty();
+	if (clone) {
+		string_add_characters(clone, s->data, s->length);
+	}
+	return clone;
+}
+
 bool string_add_character(struct string *s, char c) {
 	if (s->capacity == s->length) {
 		size_t new_size = s->capacity * 2;
@@ -27,6 +50,29 @@ bool string_add_character(struct string *s, char c) {
 	}
 	s->data[s->length] = c;
 	s->length++;
+	return true;
+}
+
+bool string_add_characters(struct string *s, const char *cs, size_t n) {
+	size_t len = s->length;
+	for (size_t i = 0; i < n; i++) {
+		if (!string_add_character(s, cs[i])) {
+			s->length = len;
+			return false;
+		}
+	}
+	return true;
+}
+
+bool string_add_c_string(struct string *s, const char *cs) {
+	size_t len = s->length;
+	while (*cs) {
+		if (!string_add_character(s, *cs)) {
+			s->length = len;
+			return false;
+		}
+		cs++;
+	}
 	return true;
 }
 
