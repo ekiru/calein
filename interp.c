@@ -87,19 +87,25 @@ static void interp(struct syntax_tree *tree) {
 	string_free(eval(tree));
 }
 
+static void define_primitive(
+	struct definition *def,
+	const char *pattern, 
+	struct string *(*f)(const struct action *action)) {
+	def->previous = environment;
+	def->is_primitive = true;
+	def->primitive = f;
+	string_init_empty(&def->pattern);
+	string_add_c_string(&def->pattern, pattern);
+	environment = def;
+}
+
 int main() {
+	environment = 0;
 	struct definition write_line_definition;
-	write_line_definition.previous = 0;
-	write_line_definition.is_primitive = true;
-	write_line_definition.primitive = primitive_write_line;
-	string_init_empty(&write_line_definition.pattern);
-	string_add_c_string(&write_line_definition.pattern, "write line $1");
+	define_primitive(&write_line_definition, "write line $1", primitive_write_line);
 	struct definition write_definition;
-	write_definition.previous = &write_line_definition;
-	write_definition.is_primitive = true;
-	write_definition.primitive = primitive_write;
-	string_init_empty(&write_definition.pattern);
-	string_add_c_string(&write_definition.pattern, "write $1");
+	define_primitive(&write_definition, "write $1", primitive_write);
+	
 
 	environment = &write_definition;
 	for (;;) {
