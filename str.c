@@ -3,13 +3,17 @@
 #include <ctype.h>
 #include <stdlib.h>
 
+static char *empty = "";
+
 void string_init_empty(struct string *s) {
 	s->capacity = s->length = 0;
-	s->data = 0;
+	s->data = empty;
 }
 
 void string_finish(struct string *s) {
-	free(s->data);
+	if (s->data != empty) {
+		free(s->data);
+	}
 }
 
 struct string *string_new_empty(void) {
@@ -27,6 +31,11 @@ void string_free(struct string *s) {
 	}
 }
 
+bool string_copy(struct string *copy, const struct string *s) {
+	string_init_empty(copy);
+	return string_add_characters(copy, s->data, s->length);
+}
+
 struct string *string_clone(const struct string *s) {
 	struct string *clone = string_new_empty();
 	if (clone) {
@@ -38,7 +47,8 @@ struct string *string_clone(const struct string *s) {
 bool string_add_character(struct string *s, char c) {
 	if (s->capacity == s->length) {
 		size_t new_size = s->capacity * 2;
-		if (!new_size) {
+		if (s->data == empty) {
+			s->data = 0;
 			new_size = 10;
 		}
 		char *new_data = realloc(s->data, new_size);

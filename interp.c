@@ -10,7 +10,10 @@ struct definition {
 	bool is_primitive;
 	struct string *(*primitive)(const struct action *action);
 	struct definition *previous;
+	struct syntax_tree *body;
 };
+
+static struct definition *environment;
 
 static struct string *eval(struct syntax_tree *tree);
 
@@ -25,6 +28,23 @@ static struct string *primitive_write(const struct action *action) {
 	struct string *s = eval(action->args[0]);
 	printf("%*s", (int) s->length, s->data);
 	string_free(s);
+	return 0;
+}
+
+static struct string *primitive_define_procedure(const struct action *action) {
+	struct definition *def = malloc(sizeof *def);
+	if (def) {
+		if (!string_copy(&def->pattern, &action->args[0]->u.action.selector)) {
+			free(def);
+			return 0;
+		}
+		def->previous = environment;
+		def->is_primitive = false;
+		def->body = syntax_tree_clone(action->args[1]);
+		environment = def;
+	} else {
+		log_error("Failed to allocate memory to define procedure.");
+	}
 	return 0;
 }
 
@@ -54,8 +74,9 @@ static bool selector_matches(const struct string *pattern, const struct action *
 	return p == pattern->length && s == selector->length;
 }
 
-
-static struct definition *environment;
+static struct string *apply(struct syntax_tree *body, struct action *args) {
+	return eval(body);
+}
 
 static struct string *eval(struct syntax_tree *tree) {
 	switch (tree->kind) {
@@ -68,9 +89,7 @@ static struct string *eval(struct syntax_tree *tree) {
 				if (def->is_primitive) {
 					return def->primitive(&tree->u.action);
 				} else {
-					//return apply(def->body, &tree->u.action);
-					log_error("Non-primitive actions not yet implemented.");
-					return 0;
+					return apply(def->body, &tree->u.action);
 				}
 			}
 		}
@@ -105,9 +124,9 @@ int main() {
 	define_primitive(&write_line_definition, "write line $1", primitive_write_line);
 	struct definition write_definition;
 	define_primitive(&write_definition, "write $1", primitive_write);
-	
+	struct definition define_procedure_definition;
+	define_primitive(&define_procedure_definition, "define procedure $1 to do $2", primitive_define_procedure);
 
-	environment = &write_definition;
 	for (;;) {
 		struct syntax_tree *tree = parse();
 		if (tree) {

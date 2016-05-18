@@ -31,6 +31,8 @@ struct syntax_tree {
 struct syntax_tree *syntax_tree_new(enum syntax_tree_kind kind);
 void syntax_tree_free(struct syntax_tree *tree);
 
+struct syntax_tree *syntax_tree_clone(const struct syntax_tree *tree);
+
 void syntax_tree_display(const struct syntax_tree *tree);
 
 #endif

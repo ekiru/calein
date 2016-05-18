@@ -1,0 +1,4 @@
+define procedure (new line) to do
+	(write line "").
+write "hello world".
+new line.

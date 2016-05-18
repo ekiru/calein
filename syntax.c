@@ -29,6 +29,40 @@ void syntax_tree_free(struct syntax_tree *tree) {
 	}
 }
 
+struct syntax_tree *syntax_tree_clone(const struct syntax_tree *tree) {
+	struct syntax_tree *copy = calloc(1, sizeof *copy);
+	if (copy) {
+		switch (tree->kind) {
+		case syntax_tree_kind_literal:
+			copy->kind = syntax_tree_kind_literal;
+			if (!string_copy(&copy->u.literal, &tree->u.literal)) {
+				free(copy);
+				return 0;
+			}
+			break;
+		case syntax_tree_kind_action:
+			copy->kind = syntax_tree_kind_action;
+			if (!string_copy(&copy->u.action.selector, &tree->u.action.selector)) {
+				free(copy);
+				return 0;
+			}
+			for (size_t i = 0; i < tree->u.action.arg_count; i++) {
+				copy->u.action.args[i] = syntax_tree_clone(tree->u.action.args[i]);
+				if (!copy->u.action.args[i]) {
+					syntax_tree_free(copy);
+					return 0;
+				}
+				copy->u.action.arg_indexes[i] = tree->u.action.arg_indexes[i];
+				copy->u.action.arg_count++;
+			}
+			break;
+		default:
+			break;
+		}
+	}
+	return copy;
+}
+
 static void print_indent(size_t times) {
 	for (;times; times--) {
 		putchar('\t');

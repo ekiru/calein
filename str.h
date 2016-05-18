@@ -16,6 +16,7 @@ void string_finish(struct string *s);
 struct string *string_new_empty(void);
 void string_free(struct string *s);
 
+bool string_copy(struct string *copy, const struct string *s);
 struct string *string_clone(const struct string *s);
 
 bool string_add_character(struct string *s, char c);
