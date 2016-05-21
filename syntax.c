@@ -9,6 +9,7 @@ bool action_copy(struct action *copy, const struct action *action) {
 	if (!string_copy(&copy->selector, &action->selector)) {
 		return false;
 	}
+	copy->arg_count = 0;
 	for (size_t i = 0; i < action->arg_count; i++) {
 		copy->args[i] = syntax_tree_clone(action->args[i]);
 		if (!copy->args[i]) {
