@@ -53,11 +53,14 @@ static bool selector_matches(const struct string *pattern, const struct action *
 	size_t current_arg = 0;
 	const struct string *selector = &action->selector;
 	while (p < pattern->length) {
-		if (pattern->data[p] == '$') {
+		if (pattern->data[p] == '(') {
 			if (current_arg == action->arg_count || action->arg_indexes[current_arg] != s) {
 				return false;
 			}
-			while (p < pattern->length && pattern->data[p] != ' ') {
+			while (p < pattern->length && pattern->data[p] != ')') {
+				p++;
+			}
+			if (pattern->data[p] == ')') {
 				p++;
 			}
 			current_arg++;
@@ -121,11 +124,11 @@ static void define_primitive(
 int main() {
 	environment = 0;
 	struct definition write_line_definition;
-	define_primitive(&write_line_definition, "write line $1", primitive_write_line);
+	define_primitive(&write_line_definition, "write line ()", primitive_write_line);
 	struct definition write_definition;
-	define_primitive(&write_definition, "write $1", primitive_write);
+	define_primitive(&write_definition, "write ()", primitive_write);
 	struct definition define_procedure_definition;
-	define_primitive(&define_procedure_definition, "define procedure $1 to do $2", primitive_define_procedure);
+	define_primitive(&define_procedure_definition, "define procedure () to do ()", primitive_define_procedure);
 
 	for (;;) {
 		struct syntax_tree *tree = parse();
