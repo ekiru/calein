@@ -2,6 +2,7 @@
 
 #include <ctype.h>
 #include <stdlib.h>
+#include <string.h>
 
 static char *empty = "";
 
@@ -42,6 +43,10 @@ struct string *string_clone(const struct string *s) {
 		string_add_characters(clone, s->data, s->length);
 	}
 	return clone;
+}
+
+bool string_equals(const struct string *s, const struct string *t) {
+	return s->length == t->length && memcmp(s->data, t->data, s->length) == 0;
 }
 
 bool string_add_character(struct string *s, char c) {

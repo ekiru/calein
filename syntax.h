@@ -20,6 +20,9 @@ struct action {
 	struct syntax_tree *args[syntax_tree_max_args];
 };
 
+bool action_copy(struct action *copy, const struct action *action);
+void action_finish(struct action *action);
+
 struct syntax_tree {
 	enum syntax_tree_kind kind;
 	union {

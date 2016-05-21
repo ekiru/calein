@@ -6,7 +6,7 @@
 #include "syntax.h"
 
 struct definition {
-	struct string pattern;
+	struct action pattern;
 	bool is_primitive;
 	struct string *(*primitive)(const struct action *action);
 	struct definition *previous;
@@ -32,15 +32,16 @@ static struct string *primitive_write(const struct action *action) {
 }
 
 static struct string *primitive_define_procedure(const struct action *action) {
-	struct definition *def = malloc(sizeof *def);
+	struct definition *def = calloc(1, sizeof *def);
 	if (def) {
-		if (!string_copy(&def->pattern, &action->args[0]->u.action.selector)) {
+		if (!action_copy(&def->pattern, &action->args[0]->u.action)
+			|| !(def->body = syntax_tree_clone(action->args[1]))) {
+			syntax_tree_free(def->body);
+			action_finish(&def->pattern);
 			free(def);
-			return 0;
 		}
 		def->previous = environment;
 		def->is_primitive = false;
-		def->body = syntax_tree_clone(action->args[1]);
 		environment = def;
 	} else {
 		log_error("Failed to allocate memory to define procedure.");
@@ -48,33 +49,19 @@ static struct string *primitive_define_procedure(const struct action *action) {
 	return 0;
 }
 
-static bool selector_matches(const struct string *pattern, const struct action *action) {
+static bool selector_matches(const struct action *pattern, const struct action *action) {
 	size_t p = 0, s = 0;
 	size_t current_arg = 0;
-	const struct string *selector = &action->selector;
-	while (p < pattern->length) {
-		if (pattern->data[p] == '(') {
-			if (current_arg == action->arg_count || action->arg_indexes[current_arg] != s) {
-				return false;
-			}
-			while (p < pattern->length && pattern->data[p] != ')') {
-				p++;
-			}
-			if (pattern->data[p] == ')') {
-				p++;
-			}
-			current_arg++;
-		} else if (s < selector->length) {
-			if (pattern->data[p] != selector->data[s]) {
-				return false;
-			}
-			p++;
-			s++;
-		} else {
-			break;
+	if (!string_equals(&pattern->selector, &action->selector)
+	    || pattern->arg_count != action->arg_count) {
+		return false;
+	}
+	for (size_t i = 0; i < pattern->arg_count; i++) {
+		if (pattern->arg_indexes[i] != action->arg_indexes[i]) {
+			return false;
 		}
 	}
-	return p == pattern->length && s == selector->length;
+	return true;
 }
 
 static struct string *apply(struct syntax_tree *body, struct action *args) {
@@ -109,26 +96,35 @@ static void interp(struct syntax_tree *tree) {
 	string_free(eval(tree));
 }
 
-static void define_primitive(
+static bool define_primitive(
 	struct definition *def,
 	const char *pattern, 
 	struct string *(*f)(const struct action *action)) {
-	def->previous = environment;
-	def->is_primitive = true;
-	def->primitive = f;
-	string_init_empty(&def->pattern);
-	string_add_c_string(&def->pattern, pattern);
-	environment = def;
+	struct syntax_tree *pattern_tree = parse_string(pattern);
+	if (pattern_tree && action_copy(&def->pattern, &pattern_tree->u.action)) {
+		def->previous = environment;
+		def->is_primitive = true;
+		def->primitive = f;
+		environment = def;
+		syntax_tree_free(pattern_tree);
+		return true;
+	} else {
+		syntax_tree_free(pattern_tree);
+		return false;
+	}
 }
 
 int main() {
 	environment = 0;
 	struct definition write_line_definition;
-	define_primitive(&write_line_definition, "write line ()", primitive_write_line);
 	struct definition write_definition;
-	define_primitive(&write_definition, "write ()", primitive_write);
 	struct definition define_procedure_definition;
-	define_primitive(&define_procedure_definition, "define procedure () to do ()", primitive_define_procedure);
+	if (!define_primitive(&write_line_definition, "write line (msg)", primitive_write_line)
+	    || !define_primitive(&write_definition, "write (msg)", primitive_write)
+	    || !define_primitive(&define_procedure_definition, "define procedure (pattern) to do (body)", primitive_define_procedure)) {
+		log_error("Failed to define primitives.");
+		return 1;
+	}
 
 	for (;;) {
 		struct syntax_tree *tree = parse();
@@ -139,4 +135,5 @@ int main() {
 			break;
 		}
 	}	
+	return 0;
 }

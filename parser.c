@@ -1,15 +1,18 @@
-#include <stdbool.h>
+#include "parser.h"
+
 #include <ctype.h>
+#include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "err.h"
 #include "str.h"
 #include "syntax.h"
 
-struct syntax_tree *parse(void) {
+static struct syntax_tree *parse_generic(void *data, int (*getc)(void *), void (*ungetc)(int, void *)) {
 	int c;
 	for (;;) {
-		c = getc(stdin);
+		c = getc(data);
 		if (c == EOF) {
 			return 0;
 		}
@@ -22,7 +25,7 @@ struct syntax_tree *parse(void) {
 			
 			bool in_escape = false;
 			for (;;) {
-				c = getc(stdin);
+				c = getc(data);
 				if (c == EOF) {
 					log_error("Parse error: unterminated string literal.");
 					goto literal_err;
@@ -60,15 +63,15 @@ struct syntax_tree *parse(void) {
 		} else {
 			struct syntax_tree *tree = syntax_tree_new(syntax_tree_kind_action);
 			string_init_empty(&tree->u.action.selector);
-			ungetc(c, stdin);
+			ungetc(c, data);
 			for (;;) {
-				c = getc(stdin);
+				c = getc(data);
 				if (c == EOF || c == '.' || c == ')') {
 					if (tree->u.action.arg_count == 0 || tree->u.action.arg_indexes[tree->u.action.arg_count-1] < tree->u.action.selector.length) {
 						string_trim_right(&tree->u.action.selector);
 					}
 					if (c == ')') {
-						ungetc(c, stdin);
+						ungetc(c, data);
 					}
 					return tree;
 				} else if (c == '"' || c == '(') {
@@ -79,9 +82,9 @@ struct syntax_tree *parse(void) {
 						goto action_err;
 					}
 					if (c == '"') {
-						ungetc(c, stdin);
+						ungetc(c, data);
 					}
-					struct syntax_tree *child = parse();
+					struct syntax_tree *child = parse_generic(data, getc, ungetc);
 					if (!child) {
 						log_error("Parse error: expected argument");
 						goto action_err;
@@ -91,7 +94,7 @@ struct syntax_tree *parse(void) {
 						tree->u.action.selector.length;
 					tree->u.action.args[tree->u.action.arg_count] = child;
 					tree->u.action.arg_count++;
-					if (paren && getc(stdin) != ')') {
+					if (paren && getc(data) != ')') {
 						log_error("Subexpression had no close paren.");
 						goto action_err;
 					}
@@ -113,4 +116,53 @@ struct syntax_tree *parse(void) {
 			return 0;
 		}
 	}
+}
+
+static int parse_file_getc(void *fp) {
+	FILE *f = fp;
+	return getc(f);
+}
+
+static void parse_file_ungetc(int c, void *fp) {
+	FILE *f = fp;
+	ungetc(c, f);
+}
+
+struct syntax_tree *parse(void) {
+	FILE *f = stdin;
+	return parse_generic(f, parse_file_getc, parse_file_ungetc);
+}
+
+struct parse_string_data {
+	const char *buf;
+	size_t offset;
+	size_t len;
+};
+
+static int parse_string_getc(void *datap) {
+	struct parse_string_data *data = datap;
+	if (data->offset == data->len) {
+		return EOF;
+	} else {
+		return data->buf[data->offset++];
+	}
+}
+
+static void parse_string_ungetc(int c, void *datap) {
+	struct parse_string_data *data = datap;
+	if (data->offset != 0) {
+		data->offset--;
+		if (data->buf[data->offset] != c) {
+			log_error("Ungetc of the wrong character: 0x%x vs. 0x%x",
+			          data->buf[data->offset], c);
+		}
+	}
+}
+
+struct syntax_tree *parse_string(const char *s) {
+	struct parse_string_data data;
+	data.buf = s;
+	data.offset = 0;
+	data.len = strlen(s);
+	return parse_generic(&data, parse_string_getc, parse_string_ungetc);
 }

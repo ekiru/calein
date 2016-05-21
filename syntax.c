@@ -5,6 +5,29 @@
 
 #include "err.h"
 
+bool action_copy(struct action *copy, const struct action *action) {
+	if (!string_copy(&copy->selector, &action->selector)) {
+		return false;
+	}
+	for (size_t i = 0; i < action->arg_count; i++) {
+		copy->args[i] = syntax_tree_clone(action->args[i]);
+		if (!copy->args[i]) {
+			action_finish(copy);
+			return false;
+		}
+		copy->arg_indexes[i] = action->arg_indexes[i];
+		copy->arg_count++;
+	}
+	return true;
+}
+
+void action_finish(struct action *action) {
+	string_finish(&action->selector);
+	for (int i = 0; i < action->arg_count; i++) {
+		syntax_tree_free(action->args[i]);
+	}
+}
+
 struct syntax_tree *syntax_tree_new(enum syntax_tree_kind kind) {
 	struct syntax_tree *tree = calloc(1, sizeof *tree);
 	if (tree) {
@@ -20,10 +43,7 @@ void syntax_tree_free(struct syntax_tree *tree) {
 		if (tree->kind == syntax_tree_kind_literal) {
 			string_finish(&tree->u.literal);
 		} else if (tree->kind == syntax_tree_kind_action) {
-			string_finish(&tree->u.action.selector);
-			for (int i = 0; i < tree->u.action.arg_count; i++) {
-				syntax_tree_free(tree->u.action.args[i]);
-			}
+			action_finish(&tree->u.action);
 		}
 		free(tree);
 	}
@@ -42,18 +62,9 @@ struct syntax_tree *syntax_tree_clone(const struct syntax_tree *tree) {
 			break;
 		case syntax_tree_kind_action:
 			copy->kind = syntax_tree_kind_action;
-			if (!string_copy(&copy->u.action.selector, &tree->u.action.selector)) {
+			if (!action_copy(&copy->u.action, &tree->u.action)) {
 				free(copy);
 				return 0;
-			}
-			for (size_t i = 0; i < tree->u.action.arg_count; i++) {
-				copy->u.action.args[i] = syntax_tree_clone(tree->u.action.args[i]);
-				if (!copy->u.action.args[i]) {
-					syntax_tree_free(copy);
-					return 0;
-				}
-				copy->u.action.arg_indexes[i] = tree->u.action.arg_indexes[i];
-				copy->u.action.arg_count++;
 			}
 			break;
 		default:
