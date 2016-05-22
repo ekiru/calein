@@ -1,0 +1,7 @@
+define procedure (write twice (message))
+	to do {
+		write line (message).
+		write line (message).
+	}.
+
+write twice "hello world".
