@@ -1,0 +1,4 @@
+define procedure (really write (message))
+	to do (write line (message)).	
+
+really write "hello".
