@@ -1,0 +1,8 @@
+define global variable (greetee) with initial value "world".
+
+write "hello ".
+write line (greetee).
+
+set (greetee) to "Sofi".
+write "hello ".
+write line (greetee).

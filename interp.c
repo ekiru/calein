@@ -23,18 +23,17 @@ struct definition {
 static struct definition *environment;
 
 static struct string *eval(struct syntax_tree *tree);
+static struct definition *lookup(const struct action *action);
 
 static struct string *primitive_write_line(const struct action *action) {
 	struct string *s = eval(action->args[0]);
 	printf("%*s\n", (int) s->length, s->data);
-	string_free(s);
 	return 0;
 }
 
 static struct string *primitive_write(const struct action *action) {
 	struct string *s = eval(action->args[0]);
 	printf("%*s", (int) s->length, s->data);
-	string_free(s);
 	return 0;
 }
 
@@ -46,12 +45,46 @@ static struct string *primitive_define_procedure(const struct action *action) {
 			syntax_tree_free(def->body);
 			action_finish(&def->pattern);
 			free(def);
+			return 0;
 		}
 		def->previous = environment;
 		def->kind = definition_kind_action;
 		environment = def;
 	} else {
 		log_error("Failed to allocate memory to define procedure.");
+	}
+	return 0;
+}
+
+static struct string *primitive_define_global_variable(const struct action *action) {
+	struct definition *def = calloc(1, sizeof *def);
+	if (def) {
+		if (!action_copy(&def->pattern, &action->args[0]->u.action)) {
+			free(def);
+			return 0;
+		}
+		def->value = eval(action->args[1]);
+		def->previous = environment;
+		def->kind = definition_kind_value;
+		environment = def;
+	} else {
+		log_error("Failed to allocate memory to define variable.");
+	}
+	return 0;
+}
+
+static struct string *primitive_set(const struct action *action) {
+	struct definition *def = lookup(&action->args[0]->u.action);
+	if (def) {
+		if (def->kind == definition_kind_value) {
+			string_free(def->value);
+			def->value = eval(action->args[1]);
+		} else {
+			log_error("Cannot set non-variable names.");
+		}
+	} else {
+		const struct string *name = &action->args[0]->u.action.selector;
+		log_error("No such variable %*s", (int) name->length, name->data);
 	}
 	return 0;
 }
@@ -71,6 +104,14 @@ static bool selector_matches(const struct action *pattern, const struct action *
 	return true;
 }
 
+static struct definition *lookup(const struct action *action) {
+	for (struct definition *def = environment; def; def = def->previous) {
+		if (selector_matches(&def->pattern, action)) {
+			return def;
+		}
+	}
+	return 0;
+}
 
 static struct string *apply(struct definition *def, struct action *args) {
 	struct definition *old_env = environment;
@@ -93,24 +134,24 @@ static struct string *apply(struct definition *def, struct action *args) {
 }
 
 static struct string *eval(struct syntax_tree *tree) {
+	struct definition *def;
 	switch (tree->kind) {
 	case syntax_tree_kind_literal:
 		return string_clone(&tree->u.literal);
 		break;
 	case syntax_tree_kind_action:
-		for (struct definition *def = environment; def; def = def->previous) {
-			if (selector_matches(&def->pattern, &tree->u.action)) {
-				if (def->kind == definition_kind_primitive) {
-					return def->primitive(&tree->u.action);
-				} else if (def->kind == definition_kind_value) {
-					return def->value;
-				} else if (def->pattern.arg_count != tree->u.action.arg_count) {
-					log_error("Incorrect argument count: expected %d, got %d",
-					          def->pattern.arg_count, tree->u.action.arg_count);
-					return 0;
-				} else {
-					return apply(def, &tree->u.action);
-				}
+		def = lookup(&tree->u.action);
+		if (def) {
+			if (def->kind == definition_kind_primitive) {
+				return def->primitive(&tree->u.action);
+			} else if (def->kind == definition_kind_value) {
+				return def->value;
+			} else if (def->pattern.arg_count != tree->u.action.arg_count) {
+				log_error("Incorrect argument count: expected %d, got %d",
+						  def->pattern.arg_count, tree->u.action.arg_count);
+				return 0;
+			} else {
+				return apply(def, &tree->u.action);
 			}
 		}
 		log_error("Unrecognized selector %*s", (int) tree->u.action.selector.length, tree->u.action.selector.data);
@@ -149,9 +190,14 @@ int main() {
 	struct definition write_line_definition;
 	struct definition write_definition;
 	struct definition define_procedure_definition;
+	struct definition define_global_variable_definition;
+	struct definition set_definition;
 	if (!define_primitive(&write_line_definition, "write line (msg)", primitive_write_line)
 	    || !define_primitive(&write_definition, "write (msg)", primitive_write)
-	    || !define_primitive(&define_procedure_definition, "define procedure (pattern) to do (body)", primitive_define_procedure)) {
+	    || !define_primitive(&define_procedure_definition, "define procedure (pattern) to do (body)", primitive_define_procedure)
+	    || !define_primitive(&define_global_variable_definition, "define global variable (name) with initial value (value)", primitive_define_global_variable)
+	    || !define_primitive(&set_definition, "set (name) to (value)", primitive_set)
+	    || false) {
 		log_error("Failed to define primitives.");
 		return 1;
 	}
