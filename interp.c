@@ -135,6 +135,7 @@ static struct string *apply(struct definition *def, struct action *args) {
 
 static struct string *eval(struct syntax_tree *tree) {
 	struct definition *def;
+	struct string *res = 0;
 	switch (tree->kind) {
 	case syntax_tree_kind_literal:
 		return string_clone(&tree->u.literal);
@@ -156,6 +157,12 @@ static struct string *eval(struct syntax_tree *tree) {
 		}
 		log_error("Unrecognized selector %*s", (int) tree->u.action.selector.length, tree->u.action.selector.data);
 		return 0;
+		break;
+	case syntax_tree_kind_sequence:
+		for (size_t i = 0; i < syntax_tree_max_sequence && tree->u.sequence[i]; i++) {
+			res = eval(tree->u.sequence[i]);
+		}
+		return res;
 		break;
 	default:
 		log_error("Unrecognized kind %d", tree->kind);
