@@ -58,30 +58,54 @@ static struct syntax_tree *parse_generic(void *data, int (*getc)(void *), void (
 		literal_err:
 			syntax_tree_free(tree);
 			return 0;
+		} else if (c == '{') {
+			struct syntax_tree *tree = syntax_tree_new(syntax_tree_kind_sequence);
+			size_t next = 0;
+			for (;;) {
+				c = getc(data);
+				if (c == EOF) {
+					log_error("Unexpected EOF in sequence.");
+					syntax_tree_free(tree);
+					return 0;
+				}
+				if (c == '}') {
+					return tree;
+				}
+				ungetc(c, data);
+				if (next == syntax_tree_max_sequence) {
+					log_error("Sequence larger than maximum length %d", syntax_tree_max_sequence);
+					return tree;
+				}
+				tree->u.sequence[next] = parse_generic(data, getc, ungetc);
+				next++;
+			}
 		} else if (isspace(c)) {
 			continue;
+		} else if (c == '}') {
+			ungetc(c, data);
+			return 0;
 		} else {
 			struct syntax_tree *tree = syntax_tree_new(syntax_tree_kind_action);
 			string_init_empty(&tree->u.action.selector);
 			ungetc(c, data);
 			for (;;) {
 				c = getc(data);
-				if (c == EOF || c == '.' || c == ')') {
+				if (c == EOF || c == '.' || c == ')' || c == '}') {
 					if (tree->u.action.arg_count == 0 || tree->u.action.arg_indexes[tree->u.action.arg_count-1] < tree->u.action.selector.length) {
 						string_trim_right(&tree->u.action.selector);
 					}
-					if (c == ')') {
+					if (c == ')' || c == '}') {
 						ungetc(c, data);
 					}
 					return tree;
-				} else if (c == '"' || c == '(') {
+				} else if (c == '"' || c == '(' || c == '{') {
 					bool paren = c == '(';
 					if (tree->u.action.arg_count == syntax_tree_max_args) {
 						log_error("Parse error: exceed max arg count %d",
 							syntax_tree_max_args);
 						goto action_err;
 					}
-					if (c == '"') {
+					if (c == '"' || c == '{') {
 						ungetc(c, data);
 					}
 					struct syntax_tree *child = parse_generic(data, getc, ungetc);

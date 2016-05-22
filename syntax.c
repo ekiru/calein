@@ -45,6 +45,10 @@ void syntax_tree_free(struct syntax_tree *tree) {
 			string_finish(&tree->u.literal);
 		} else if (tree->kind == syntax_tree_kind_action) {
 			action_finish(&tree->u.action);
+		} else if (tree->kind == syntax_tree_kind_sequence) {
+			for (size_t i = 0; i < syntax_tree_max_sequence; i++) {
+				syntax_tree_free(tree->u.sequence[i]);
+			}
 		}
 		free(tree);
 	}
@@ -66,6 +70,12 @@ struct syntax_tree *syntax_tree_clone(const struct syntax_tree *tree) {
 			if (!action_copy(&copy->u.action, &tree->u.action)) {
 				free(copy);
 				return 0;
+			}
+			break;
+		case syntax_tree_kind_sequence:
+			copy->kind = syntax_tree_kind_sequence;
+			for (size_t i = 0; i < syntax_tree_max_sequence && tree->u.sequence[i]; i++) {
+				copy->u.sequence[i] = syntax_tree_clone(tree->u.sequence[i]);
 			}
 			break;
 		default:
@@ -107,6 +117,13 @@ static void display_with_indent(const struct syntax_tree *tree, size_t indent) {
 		putchar('\n');
 		for (size_t i = 0; i < tree->u.action.arg_count; i++) {
 			display_with_indent(tree->u.action.args[i], indent+1);
+		}
+		break;
+	case syntax_tree_kind_sequence:
+		print_indent(indent);
+		printf("Sequence:\n");
+		for (size_t i = 0; i < syntax_tree_max_sequence && tree->u.sequence[i]; i++) {
+			display_with_indent(tree->u.sequence[i], indent+1);
 		}
 		break;
 	default:

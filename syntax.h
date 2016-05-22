@@ -9,9 +9,11 @@ enum syntax_tree_kind {
 	syntax_tree_kind_invalid,
 	syntax_tree_kind_literal,
 	syntax_tree_kind_action,
+	syntax_tree_kind_sequence,
 };
 
 static const size_t syntax_tree_max_args = 10;
+static const size_t syntax_tree_max_sequence = 20;
 
 struct action {
 	struct string selector;
@@ -28,6 +30,7 @@ struct syntax_tree {
 	union {
 		struct string literal;
 		struct action action;
+		struct syntax_tree *sequence[syntax_tree_max_sequence];
 	} u;
 };
 
