@@ -2,11 +2,11 @@ define data type (natural number)
 	with case (zero)
 	and  case (succ (natural number)).
 
-define function ($ is zero) from (natural number) to (boolean)
+define function ((x) is zero) from (natural number) to (boolean)
 	such that ((zero) is zero) is (true)
-	and ((anything else) is zero) is (false).
+	and (('anything else) is zero) is (false).
 
-define function ($ + $)
+define function ((x) + (y))
 	from ((natural number) and (natural number)) to (natural number)
-	such that ((zero) + $x) is ($x)
-	and ((succ $x) + $y) is (succ (add $x $y)).
+	such that ((zero) + ('x)) is (x)
+	and ((succ ('x)) + ('y)) is (succ (add (x) (y))).
