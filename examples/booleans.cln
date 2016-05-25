@@ -1,0 +1,9 @@
+define procedure (assert (x) is equal to (y))
+	to do (if ((x) is equal to (y)) then {
+		write line "ok".
+	} else {
+		write line "not ok".
+	}).
+
+assert "hello" is equal to "hello".
+assert "hello" is equal to "goodbye".

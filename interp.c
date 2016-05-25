@@ -5,6 +5,19 @@
 #include "parser.h"
 #include "syntax.h"
 
+enum value_kind {
+	value_kind_string,
+	value_kind_boolean
+};
+
+struct value {
+	enum value_kind kind;
+	union {
+		struct string string;
+		bool boolean;
+	} u;
+};
+
 enum definition_kind {
 	definition_kind_primitive,
 	definition_kind_action,
@@ -14,30 +27,79 @@ enum definition_kind {
 struct definition {
 	enum definition_kind kind;
 	struct action pattern;
-	struct string *(*primitive)(const struct action *action);
+	struct value *(*primitive)(const struct action *action);
 	struct definition *previous;
 	struct syntax_tree *body;
-	struct string *value;
+	struct value *value;
 };
 
 static struct definition *environment;
 
-static struct string *eval(struct syntax_tree *tree);
+static struct value *eval(struct syntax_tree *tree);
 static struct definition *lookup(const struct action *action);
 
-static struct string *primitive_write_line(const struct action *action) {
-	struct string *s = eval(action->args[0]);
-	printf("%*s\n", (int) s->length, s->data);
+static struct value *primitive_write(const struct action *action) {
+	struct value *v = eval(action->args[0]);
+	switch (v->kind) {
+	case value_kind_string:
+		printf("%*s", (int) v->u.string.length, v->u.string.data);
+		break;
+	case value_kind_boolean:
+		if (v->u.boolean) {
+			printf("true");
+		} else {
+			printf("false");
+		}
+		break;
+	default:
+		log_error("Unrecognized value kind %d", v->kind);
+	}
 	return 0;
 }
 
-static struct string *primitive_write(const struct action *action) {
-	struct string *s = eval(action->args[0]);
-	printf("%*s", (int) s->length, s->data);
+static struct value *primitive_write_line(const struct action *action) {
+	primitive_write(action);
+	puts("");
 	return 0;
 }
 
-static struct string *primitive_define_procedure(const struct action *action) {
+static struct value *primitive_is_equal_to(const struct action *action) {
+	struct value *res = calloc(1, sizeof *res);
+	if (res) {
+		struct value *x = eval(action->args[0]);
+		struct value *y = eval(action->args[1]);
+		res->kind = value_kind_boolean;
+		if (x->kind == y->kind) {
+			switch (x->kind) {
+			case value_kind_boolean:
+				res->u.boolean = x->u.boolean = y->u.boolean;
+				break;
+			case value_kind_string:
+				res->u.boolean = string_equals(&x->u.string, &y->u.string);
+				break;
+			default:
+				log_error("Unrecognized kind %d in (x) is equal to (y).", x->kind);
+				res->u.boolean = false;
+				break;
+			}
+		} else {
+			res->u.boolean = false;
+		}
+	}
+	return res;
+}
+
+static struct value *primitive_if_then_else(const struct action *action) {
+	struct value *condition = eval(action->args[0]);
+	if (condition && (condition->kind != value_kind_boolean || condition->u.boolean)) {
+		// a non-null non-boolean is always true.
+		return eval(action->args[1]);
+	} else {
+		return eval(action->args[2]);
+	}
+}
+
+static struct value *primitive_define_procedure(const struct action *action) {
 	struct definition *def = calloc(1, sizeof *def);
 	if (def) {
 		if (!action_copy(&def->pattern, &action->args[0]->u.action)
@@ -56,7 +118,7 @@ static struct string *primitive_define_procedure(const struct action *action) {
 	return 0;
 }
 
-static struct string *primitive_define_global_variable(const struct action *action) {
+static struct value *primitive_define_global_variable(const struct action *action) {
 	struct definition *def = calloc(1, sizeof *def);
 	if (def) {
 		if (!action_copy(&def->pattern, &action->args[0]->u.action)) {
@@ -73,11 +135,10 @@ static struct string *primitive_define_global_variable(const struct action *acti
 	return 0;
 }
 
-static struct string *primitive_set(const struct action *action) {
+static struct value *primitive_set(const struct action *action) {
 	struct definition *def = lookup(&action->args[0]->u.action);
 	if (def) {
 		if (def->kind == definition_kind_value) {
-			string_free(def->value);
 			def->value = eval(action->args[1]);
 		} else {
 			log_error("Cannot set non-variable names.");
@@ -113,7 +174,7 @@ static struct definition *lookup(const struct action *action) {
 	return 0;
 }
 
-static struct string *apply(struct definition *def, struct action *args) {
+static struct value *apply(struct definition *def, struct action *args) {
 	struct definition *old_env = environment;
 	struct definition arg_definitions[syntax_tree_max_args];
 	struct definition *new_env = environment;
@@ -128,17 +189,24 @@ static struct string *apply(struct definition *def, struct action *args) {
 		new_env->value = eval(args->args[i]);
 	}
 	environment = new_env;
-	struct string *result = eval(def->body);
+	struct value *result = eval(def->body);
 	environment = old_env;
 	return result;
 }
 
-static struct string *eval(struct syntax_tree *tree) {
+static struct value *eval(struct syntax_tree *tree) {
 	struct definition *def;
-	struct string *res = 0;
+	struct value *res = 0;
 	switch (tree->kind) {
 	case syntax_tree_kind_literal:
-		return string_clone(&tree->u.literal);
+		res = calloc(1, sizeof *res);
+		res->kind = value_kind_string;
+		if (string_copy(&res->u.string, &tree->u.literal)) {
+			return res;
+		} else {
+			free(res);
+			return 0;
+		}
 		break;
 	case syntax_tree_kind_action:
 		def = lookup(&tree->u.action);
@@ -171,13 +239,17 @@ static struct string *eval(struct syntax_tree *tree) {
 }
 
 static void interp(struct syntax_tree *tree) {
-	string_free(eval(tree));
+	struct value *res = eval(tree);
+	if (res && res->kind == value_kind_string) {
+		string_finish(&res->u.string);
+	}
+	free(res);
 }
 
 static bool define_primitive(
 	struct definition *def,
 	const char *pattern, 
-	struct string *(*f)(const struct action *action)) {
+	struct value *(*f)(const struct action *action)) {
 	struct syntax_tree *pattern_tree = parse_string(pattern);
 	if (pattern_tree && action_copy(&def->pattern, &pattern_tree->u.action)) {
 		def->previous = environment;
@@ -196,11 +268,15 @@ int main() {
 	environment = 0;
 	struct definition write_line_definition;
 	struct definition write_definition;
+	struct definition is_equal_to_definition;
+	struct definition if_then_else_definition;
 	struct definition define_procedure_definition;
 	struct definition define_global_variable_definition;
 	struct definition set_definition;
 	if (!define_primitive(&write_line_definition, "write line (msg)", primitive_write_line)
 	    || !define_primitive(&write_definition, "write (msg)", primitive_write)
+	    || !define_primitive(&is_equal_to_definition, "(x) is equal to (y)", primitive_is_equal_to)
+	    || !define_primitive(&if_then_else_definition, "if (condition) then (then) else (else)", primitive_if_then_else)
 	    || !define_primitive(&define_procedure_definition, "define procedure (pattern) to do (body)", primitive_define_procedure)
 	    || !define_primitive(&define_global_variable_definition, "define global variable (name) with initial value (value)", primitive_define_global_variable)
 	    || !define_primitive(&set_definition, "set (name) to (value)", primitive_set)
