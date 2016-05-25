@@ -1,0 +1,12 @@
+Calein is a toy programming language I'm working on, and an interpreter for it.
+The interpreter is very hacky, and I'm not going to try very hard to fix some
+of that hackiness because, once the interpreter implements a sufficiently
+expressive language, I plan to do the write-a-compiler-for-the-language-in-
+itself-and-use-the-interpreter-to-run-it-on-itself thing.
+
+There are a few examples in the examples directory, all of which work with the
+exception of examples/data.cln . That one has some very tentative things that
+might not match the ultimate design.
+
+This code doesn't have a license yet. It probably will at some point, though I
+don't particularly expect anyone who isn't me to desire to use it.
