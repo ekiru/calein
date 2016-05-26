@@ -24,7 +24,7 @@ bool action_copy(struct action *copy, const struct action *action) {
 
 void action_finish(struct action *action) {
 	string_finish(&action->selector);
-	for (int i = 0; i < action->arg_count; i++) {
+	for (size_t i = 0; i < action->arg_count; i++) {
 		syntax_tree_free(action->args[i]);
 	}
 }
