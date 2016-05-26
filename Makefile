@@ -1,3 +1,4 @@
+CFLAGS=-Wall
 .PHONY: all
 all: parse interp
 

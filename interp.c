@@ -151,8 +151,6 @@ static struct value *primitive_set(const struct action *action) {
 }
 
 static bool selector_matches(const struct action *pattern, const struct action *action) {
-	size_t p = 0, s = 0;
-	size_t current_arg = 0;
 	if (!string_equals(&pattern->selector, &action->selector)
 	    || pattern->arg_count != action->arg_count) {
 		return false;
