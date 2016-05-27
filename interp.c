@@ -82,6 +82,9 @@ static struct value *primitive_is_equal_to(const struct action *action) {
 			case value_kind_string:
 				res->u.boolean = string_equals(&x->u.string, &y->u.string);
 				break;
+			case value_kind_number:
+				res->u.boolean = x->u.number == y->u.number;
+				break;
 			default:
 				log_error("Unrecognized kind %d in (x) is equal to (y).", x->kind);
 				res->u.boolean = false;
