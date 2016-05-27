@@ -1,1 +1,5 @@
 write line (#5 + #6).
+write line (#5 - #6).
+write line (#5 * #6).
+write line (#12 / #6).
+write line (#13 mod #6).

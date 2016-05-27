@@ -40,6 +40,36 @@ static struct definition *environment;
 static struct value *eval(struct syntax_tree *tree);
 static struct definition *lookup(const struct action *action);
 
+#define ARITH_PRIM(name, op) struct value *primitive_ ## name(const struct action *action) { \
+	struct value *x = eval(action->args[0]); \
+	struct value *y = eval(action->args[1]); \
+	struct value *res = calloc(1, sizeof *res); \
+	if (!x || !y) { \
+		log_error("Cannot " #name " valueless expressions"); \
+		goto err; \
+	} \
+	if (x->kind != value_kind_number || y->kind != value_kind_number) { \
+		log_error("Cannot " #name " non-numbers"); \
+		goto err; \
+	} \
+	if (res) { \
+		res->kind = value_kind_number; \
+		res->u.number = x->u.number op y->u.number; \
+	} \
+	return res; \
+err: \
+	free(res); \
+	return 0; \
+}
+
+ARITH_PRIM(add, +)
+ARITH_PRIM(subtract, -)
+ARITH_PRIM(multiply, *)
+ARITH_PRIM(divide, /)
+ARITH_PRIM(mod, %)
+
+#undef ARITH_PRIM
+
 static struct value *primitive_write(const struct action *action) {
 	struct value *v = eval(action->args[0]);
 	switch (v->kind) {
@@ -282,6 +312,11 @@ int main() {
 	environment = 0;
 	struct definition write_line_definition;
 	struct definition write_definition;
+	struct definition add_definition;
+	struct definition subtract_definition;
+	struct definition multiply_definition;
+	struct definition divide_definition;
+	struct definition mod_definition;
 	struct definition is_equal_to_definition;
 	struct definition if_then_else_definition;
 	struct definition define_procedure_definition;
@@ -289,6 +324,11 @@ int main() {
 	struct definition set_definition;
 	if (!define_primitive(&write_line_definition, "write line (msg)", primitive_write_line)
 	    || !define_primitive(&write_definition, "write (msg)", primitive_write)
+	    || !define_primitive(&add_definition, "(x) + (y)", primitive_add)
+	    || !define_primitive(&subtract_definition, "(x) - (y)", primitive_subtract)
+	    || !define_primitive(&multiply_definition, "(x) * (y)", primitive_multiply)
+	    || !define_primitive(&divide_definition, "(x) / (y)", primitive_divide)
+	    || !define_primitive(&mod_definition, "(x) mod (y)", primitive_mod)
 	    || !define_primitive(&is_equal_to_definition, "(x) is equal to (y)", primitive_is_equal_to)
 	    || !define_primitive(&if_then_else_definition, "if (condition) then (then) else (else)", primitive_if_then_else)
 	    || !define_primitive(&define_procedure_definition, "define procedure (pattern) to do (body)", primitive_define_procedure)
