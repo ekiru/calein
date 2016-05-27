@@ -7,7 +7,8 @@
 
 enum value_kind {
 	value_kind_string,
-	value_kind_boolean
+	value_kind_boolean,
+	value_kind_number,
 };
 
 struct value {
@@ -15,6 +16,7 @@ struct value {
 	union {
 		struct string string;
 		bool boolean;
+		int64_t number;
 	} u;
 };
 
@@ -50,6 +52,9 @@ static struct value *primitive_write(const struct action *action) {
 		} else {
 			printf("false");
 		}
+		break;
+	case value_kind_number:
+		printf("%lld", v->u.number);
 		break;
 	default:
 		log_error("Unrecognized value kind %d", v->kind);
@@ -205,6 +210,14 @@ static struct value *eval(struct syntax_tree *tree) {
 			free(res);
 			return 0;
 		}
+		break;
+	case syntax_tree_kind_number:
+		res = calloc(1, sizeof *res);
+		if (res) {
+			res->kind = value_kind_number;
+			res->u.number = tree->u.number;
+		}
+		return res;
 		break;
 	case syntax_tree_kind_action:
 		def = lookup(&tree->u.action);

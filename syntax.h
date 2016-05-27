@@ -10,6 +10,7 @@ enum syntax_tree_kind {
 	syntax_tree_kind_literal,
 	syntax_tree_kind_action,
 	syntax_tree_kind_sequence,
+	syntax_tree_kind_number,
 };
 
 static const size_t syntax_tree_max_args = 10;
@@ -31,6 +32,7 @@ struct syntax_tree {
 		struct string literal;
 		struct action action;
 		struct syntax_tree *sequence[syntax_tree_max_sequence];
+		int64_t number;
 	} u;
 };
 

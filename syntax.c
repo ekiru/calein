@@ -78,6 +78,10 @@ struct syntax_tree *syntax_tree_clone(const struct syntax_tree *tree) {
 				copy->u.sequence[i] = syntax_tree_clone(tree->u.sequence[i]);
 			}
 			break;
+		case syntax_tree_kind_number:
+			copy->kind = syntax_tree_kind_number;
+			copy->u.number = tree->u.number;
+			break;
 		default:
 			break;
 		}
@@ -125,6 +129,10 @@ static void display_with_indent(const struct syntax_tree *tree, size_t indent) {
 		for (size_t i = 0; i < syntax_tree_max_sequence && tree->u.sequence[i]; i++) {
 			display_with_indent(tree->u.sequence[i], indent+1);
 		}
+		break;
+	case syntax_tree_kind_number:
+		print_indent(indent);
+		printf("Number: %lld\n", tree->u.number);
 		break;
 	default:
 		print_indent(indent);

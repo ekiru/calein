@@ -58,6 +58,36 @@ static struct syntax_tree *parse_generic(void *data, int (*getc)(void *), void (
 		literal_err:
 			syntax_tree_free(tree);
 			return 0;
+		} else if (c == '#') {
+			struct syntax_tree *tree = syntax_tree_new(syntax_tree_kind_number); 
+			bool negative = false, start = true;
+			if (!tree) {
+				return 0;
+			}
+			for (;;) {
+				c = getc(data);
+				if (start && c == '-') {
+					negative = true;
+					c = getc(data);
+				}
+				if (start && c == EOF) {
+					log_error("Unexpected EOF at beginning of numeric literal.");
+					syntax_tree_free(tree);
+					return 0;
+				}
+				if (!isdigit(c)) {
+					if (c != EOF) {
+						ungetc(c, data);
+					}
+					if (negative) {
+						tree->u.number *= -1;
+					}
+					return tree;
+				}
+				tree->u.number *= 10;
+				tree->u.number += c - '0';
+				start = false;
+			}
 		} else if (c == '{') {
 			struct syntax_tree *tree = syntax_tree_new(syntax_tree_kind_sequence);
 			size_t next = 0;
@@ -98,14 +128,14 @@ static struct syntax_tree *parse_generic(void *data, int (*getc)(void *), void (
 						ungetc(c, data);
 					}
 					return tree;
-				} else if (c == '"' || c == '(' || c == '{') {
+				} else if (c == '"' || c == '#' || c == '(' || c == '{') {
 					bool paren = c == '(';
 					if (tree->u.action.arg_count == syntax_tree_max_args) {
 						log_error("Parse error: exceed max arg count %d",
 							syntax_tree_max_args);
 						goto action_err;
 					}
-					if (c == '"' || c == '{') {
+					if (c == '"' || c == '#' || c == '{') {
 						ungetc(c, data);
 					}
 					struct syntax_tree *child = parse_generic(data, getc, ungetc);
