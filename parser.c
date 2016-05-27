@@ -9,7 +9,10 @@
 #include "str.h"
 #include "syntax.h"
 
-static struct syntax_tree *parse_generic(void *data, int (*getc)(void *), void (*ungetc)(int, void *)) {
+
+static struct syntax_tree *try_parse_following_action(struct syntax_tree *tree, void *data, int (*getc)(void *), void (*ungetc)(int, void *));
+
+static struct syntax_tree *parse_generic(bool start_of_expression, void *data, int (*getc)(void *), void (*ungetc)(int, void *)) {
 	int c;
 	for (;;) {
 		c = getc(data);
@@ -48,7 +51,11 @@ static struct syntax_tree *parse_generic(void *data, int (*getc)(void *), void (
 				} else if (c == '\\') {
 					in_escape = true;
 				} else if (c == '"') {
-					return tree;
+					if (start_of_expression) {
+						return try_parse_following_action(tree, data, getc, ungetc);
+					} else {
+						return tree;
+					}
 				} else {
 					if (!string_add_character(&tree->u.literal, c)) {
 						goto literal_err;
@@ -82,7 +89,11 @@ static struct syntax_tree *parse_generic(void *data, int (*getc)(void *), void (
 					if (negative) {
 						tree->u.number *= -1;
 					}
-					return tree;
+					if (start_of_expression) {
+						return try_parse_following_action(tree, data, getc, ungetc);
+					} else {
+						return tree;
+					}
 				}
 				tree->u.number *= 10;
 				tree->u.number += c - '0';
@@ -106,7 +117,7 @@ static struct syntax_tree *parse_generic(void *data, int (*getc)(void *), void (
 					log_error("Sequence larger than maximum length %d", syntax_tree_max_sequence);
 					return tree;
 				}
-				tree->u.sequence[next] = parse_generic(data, getc, ungetc);
+				tree->u.sequence[next] = parse_generic(true, data, getc, ungetc);
 				next++;
 			}
 		} else if (isspace(c)) {
@@ -115,61 +126,71 @@ static struct syntax_tree *parse_generic(void *data, int (*getc)(void *), void (
 			ungetc(c, data);
 			return 0;
 		} else {
-			struct syntax_tree *tree = syntax_tree_new(syntax_tree_kind_action);
-			string_init_empty(&tree->u.action.selector);
 			ungetc(c, data);
-			for (;;) {
-				c = getc(data);
-				if (c == EOF || c == '.' || c == ')' || c == '}') {
-					if (tree->u.action.arg_count == 0 || tree->u.action.arg_indexes[tree->u.action.arg_count-1] < tree->u.action.selector.length) {
-						string_trim_right(&tree->u.action.selector);
-					}
-					if (c == ')' || c == '}') {
-						ungetc(c, data);
-					}
-					return tree;
-				} else if (c == '"' || c == '#' || c == '(' || c == '{') {
-					bool paren = c == '(';
-					if (tree->u.action.arg_count == syntax_tree_max_args) {
-						log_error("Parse error: exceed max arg count %d",
-							syntax_tree_max_args);
-						goto action_err;
-					}
-					if (c == '"' || c == '#' || c == '{') {
-						ungetc(c, data);
-					}
-					struct syntax_tree *child = parse_generic(data, getc, ungetc);
-					if (!child) {
-						log_error("Parse error: expected argument");
-						goto action_err;
-					}
-					//printf("Adding arg %lu at %lu\n", tree->u.action.arg_count, tree->u.action.selector.length);
-					tree->u.action.arg_indexes[tree->u.action.arg_count] =
-						tree->u.action.selector.length;
-					tree->u.action.args[tree->u.action.arg_count] = child;
-					tree->u.action.arg_count++;
-					if (paren && getc(data) != ')') {
-						log_error("Subexpression had no close paren.");
-						goto action_err;
-					}
-				} else if (isspace(c)) {
-					if (tree->u.action.selector.length == 0 || tree->u.action.selector.data[tree->u.action.selector.length-1] != ' '
-					    || (tree->u.action.arg_count != 0 && tree->u.action.selector.length == tree->u.action.arg_indexes[tree->u.action.arg_count-1])) {
-						if (!string_add_character(&tree->u.action.selector, ' ')) {
-							goto action_err;
-						}
-					}
-				} else {
-					if (!string_add_character(&tree->u.action.selector, c)) {
-						goto action_err;
-					}
-				}
-			}
-		action_err:
-			syntax_tree_free(tree);
-			return 0;
+			return try_parse_following_action(0, data, getc, ungetc);
 		}
 	}
+}
+
+static struct syntax_tree *try_parse_following_action(struct syntax_tree *firstChild, void *data, int (*getc)(void *), void (*ungetc)(int, void *)) {
+	struct syntax_tree *tree = syntax_tree_new(syntax_tree_kind_action);
+	string_init_empty(&tree->u.action.selector);
+	if (firstChild) {
+		tree->u.action.arg_indexes[tree->u.action.arg_count] =
+			tree->u.action.selector.length;
+		tree->u.action.args[tree->u.action.arg_count] = firstChild;
+		tree->u.action.arg_count++;
+	}
+	for (;;) {
+		int c = getc(data);
+		if (c == EOF || c == '.' || c == ')' || c == '}') {
+			if (tree->u.action.arg_count == 0 || tree->u.action.arg_indexes[tree->u.action.arg_count-1] < tree->u.action.selector.length) {
+				string_trim_right(&tree->u.action.selector);
+			}
+			if (c == ')' || c == '}') {
+				ungetc(c, data);
+			}
+			return tree;
+		} else if (c == '"' || c == '#' || c == '(' || c == '{') {
+			bool paren = c == '(';
+			if (tree->u.action.arg_count == syntax_tree_max_args) {
+				log_error("Parse error: exceed max arg count %d",
+					syntax_tree_max_args);
+				goto action_err;
+			}
+			if (c == '"' || c == '#' || c == '{') {
+				ungetc(c, data);
+			}
+			struct syntax_tree *child = parse_generic(c == '(', data, getc, ungetc);
+			if (!child) {
+				log_error("Parse error: expected argument");
+				goto action_err;
+			}
+			//printf("Adding arg %lu at %lu\n", tree->u.action.arg_count, tree->u.action.selector.length);
+			tree->u.action.arg_indexes[tree->u.action.arg_count] =
+				tree->u.action.selector.length;
+			tree->u.action.args[tree->u.action.arg_count] = child;
+			tree->u.action.arg_count++;
+			if (paren && getc(data) != ')') {
+				log_error("Subexpression had no close paren.");
+				goto action_err;
+			}
+		} else if (isspace(c)) {
+			if (tree->u.action.selector.length == 0 || tree->u.action.selector.data[tree->u.action.selector.length-1] != ' '
+				|| (tree->u.action.arg_count != 0 && tree->u.action.selector.length == tree->u.action.arg_indexes[tree->u.action.arg_count-1])) {
+				if (!string_add_character(&tree->u.action.selector, ' ')) {
+					goto action_err;
+				}
+			}
+		} else {
+			if (!string_add_character(&tree->u.action.selector, c)) {
+				goto action_err;
+			}
+		}
+	}
+action_err:
+	syntax_tree_free(tree);
+	return 0;
 }
 
 static int parse_file_getc(void *fp) {
@@ -184,7 +205,7 @@ static void parse_file_ungetc(int c, void *fp) {
 
 struct syntax_tree *parse(void) {
 	FILE *f = stdin;
-	return parse_generic(f, parse_file_getc, parse_file_ungetc);
+	return parse_generic(true, f, parse_file_getc, parse_file_ungetc);
 }
 
 struct parse_string_data {
@@ -218,5 +239,5 @@ struct syntax_tree *parse_string(const char *s) {
 	data.buf = s;
 	data.offset = 0;
 	data.len = strlen(s);
-	return parse_generic(&data, parse_string_getc, parse_string_ungetc);
+	return parse_generic(true, &data, parse_string_getc, parse_string_ungetc);
 }
