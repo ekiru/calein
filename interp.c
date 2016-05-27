@@ -98,6 +98,23 @@ static struct value *primitive_write_line(const struct action *action) {
 	return 0;
 }
 
+static struct value *primitive_not(const struct action *action) {
+	struct value *res = calloc(1, sizeof *res);
+	struct value *v;
+	if (!res) {
+		log_error("Unable to allocate memory.");
+		return res;
+	}
+	v = eval(action->args[0]);
+	if (!v || v->kind != value_kind_boolean) {
+		log_error("not requires a boolean");
+		free(res);
+	}
+	res->kind = value_kind_boolean;
+	res->u.boolean = !v->u.boolean;
+	return res;
+}
+
 static struct value *primitive_is_equal_to(const struct action *action) {
 	struct value *res = calloc(1, sizeof *res);
 	if (res) {
@@ -134,6 +151,16 @@ static struct value *primitive_if_then_else(const struct action *action) {
 		return eval(action->args[1]);
 	} else {
 		return eval(action->args[2]);
+	}
+}
+
+static struct value *primitive_while_do(const struct action *action) {
+	for (;;) {
+		struct value *condition = eval(action->args[0]);
+		if (!condition || (condition->kind == value_kind_boolean && !condition->u.boolean)) {
+			return 0;
+		}
+		eval(action->args[1]);
 	}
 }
 
@@ -317,8 +344,10 @@ int main() {
 	struct definition multiply_definition;
 	struct definition divide_definition;
 	struct definition mod_definition;
+	struct definition not_definition;
 	struct definition is_equal_to_definition;
 	struct definition if_then_else_definition;
+	struct definition while_do_definition;
 	struct definition define_procedure_definition;
 	struct definition define_global_variable_definition;
 	struct definition set_definition;
@@ -329,8 +358,10 @@ int main() {
 	    || !define_primitive(&multiply_definition, "(x) * (y)", primitive_multiply)
 	    || !define_primitive(&divide_definition, "(x) / (y)", primitive_divide)
 	    || !define_primitive(&mod_definition, "(x) mod (y)", primitive_mod)
+	    || !define_primitive(&not_definition, "not (x)", primitive_not)
 	    || !define_primitive(&is_equal_to_definition, "(x) is equal to (y)", primitive_is_equal_to)
 	    || !define_primitive(&if_then_else_definition, "if (condition) then (then) else (else)", primitive_if_then_else)
+	    || !define_primitive(&while_do_definition, "while (condition) do (body)", primitive_while_do)
 	    || !define_primitive(&define_procedure_definition, "define procedure (pattern) to do (body)", primitive_define_procedure)
 	    || !define_primitive(&define_global_variable_definition, "define global variable (name) with initial value (value)", primitive_define_global_variable)
 	    || !define_primitive(&set_definition, "set (name) to (value)", primitive_set)

@@ -1,0 +1,7 @@
+define global variable (i)
+	with initial value #0.
+
+while (not ((i) is equal to #10)) do {
+	write line (i).
+	set (i) to ((i) + #1).
+}.
