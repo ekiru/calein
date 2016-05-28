@@ -203,8 +203,8 @@ define procedure (try parse action after (first child)) to do {
 			else (if ((last character of (literal)) is equal to (space))
 			then (if (children)
 				then (if ((first (first (children))) is equal to (length (literal)))
-					then (false)
-					else (append character (space) to (literal)))
+					then (append character (space) to (literal))
+					else (false))
 				else (false))
 			else (append character (space) to (literal))).
 		} else (append character (c) to (literal)))).
