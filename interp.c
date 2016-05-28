@@ -272,7 +272,7 @@ static struct value *eval(struct syntax_tree *tree) {
 			}
 		}
 		log_error("Unrecognized selector %.*s", (int) tree->u.action.selector.length, tree->u.action.selector.data);
-		return 0;
+		exit(1);
 		break;
 	case syntax_tree_kind_sequence:
 		for (size_t i = 0; i < syntax_tree_max_sequence && tree->u.sequence[i]; i++) {

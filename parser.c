@@ -97,6 +97,9 @@ static struct syntax_tree *parse_generic(bool start_of_expression, void *data, i
 				}
 				if (!isdigit(c)) {
 					if (c != EOF) {
+						if (c == '\n') {
+							line--;
+						}
 						ungetc(c, data);
 					}
 					if (negative) {
@@ -129,8 +132,11 @@ static struct syntax_tree *parse_generic(bool start_of_expression, void *data, i
 					return tree;
 				}
 				ungetc(c, data);
+				if (c == '\n') {
+					line--;
+				}
 				if (next == syntax_tree_max_sequence) {
-					log_error("Sequence larger than maximum length %d", syntax_tree_max_sequence);
+					log_error("Sequence larger than maximum length %d at line %lu", syntax_tree_max_sequence, line);
 					return tree;
 				}
 				tree->u.sequence[next] = parse_generic(true, data, getc, ungetc);
@@ -143,6 +149,9 @@ static struct syntax_tree *parse_generic(bool start_of_expression, void *data, i
 			return 0;
 		} else {
 			ungetc(c, data);
+			if (c == '\n') {
+				line--;
+			}
 			return try_parse_following_action(0, data, getc, ungetc);
 		}
 	}
