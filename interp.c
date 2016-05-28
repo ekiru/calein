@@ -370,7 +370,7 @@ static struct value *eval(struct syntax_tree *tree) {
 				return apply(def, &tree->u.action);
 			}
 		}
-		log_error("Unrecognized selector %*s", (int) tree->u.action.selector.length, tree->u.action.selector.data);
+		log_error("Unrecognized selector %.*s", (int) tree->u.action.selector.length, tree->u.action.selector.data);
 		return 0;
 		break;
 	case syntax_tree_kind_sequence:
