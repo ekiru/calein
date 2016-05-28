@@ -1,4 +1,4 @@
-define global variable (greetee) with initial value "world".
+define variable (greetee) with initial value "world".
 
 write "hello ".
 write line (greetee).

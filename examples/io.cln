@@ -1,9 +1,9 @@
 write line "Hi, what's your name?".
 
-define global variable (name)
+define variable (name)
 	with initial value "".
 
-define global variable (c)
+define variable (c)
 	with initial value (read character).
 
 while (c) do {

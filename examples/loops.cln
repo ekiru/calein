@@ -1,4 +1,4 @@
-define global variable (i)
+define variable (i)
 	with initial value #0.
 
 while (not ((i) is equal to #10)) do {

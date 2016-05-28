@@ -259,7 +259,7 @@ static struct value *primitive_define_procedure(const struct action *action) {
 	return 0;
 }
 
-static struct value *primitive_define_global_variable(const struct action *action) {
+static struct value *primitive_define_variable(const struct action *action) {
 	struct definition *def = calloc(1, sizeof *def);
 	if (def) {
 		if (!action_copy(&def->pattern, &action->args[0]->u.action)) {
@@ -430,7 +430,7 @@ int main(int argc, char **argv) {
 	struct definition if_then_else_definition;
 	struct definition while_do_definition;
 	struct definition define_procedure_definition;
-	struct definition define_global_variable_definition;
+	struct definition define_variable_definition;
 	struct definition set_definition;
 	if (!define_primitive(&pair_definition, "(first), (second)", primitive_pair)
 	    || !define_primitive(&first_definition, "first (pair)", primitive_first)
@@ -449,7 +449,7 @@ int main(int argc, char **argv) {
 	    || !define_primitive(&if_then_else_definition, "if (condition) then (then) else (else)", primitive_if_then_else)
 	    || !define_primitive(&while_do_definition, "while (condition) do (body)", primitive_while_do)
 	    || !define_primitive(&define_procedure_definition, "define procedure (pattern) to do (body)", primitive_define_procedure)
-	    || !define_primitive(&define_global_variable_definition, "define global variable (name) with initial value (value)", primitive_define_global_variable)
+	    || !define_primitive(&define_variable_definition, "define variable (name) with initial value (value)", primitive_define_variable)
 	    || !define_primitive(&set_definition, "set (name) to (value)", primitive_set)
 	    || false) {
 		log_error("Failed to define primitives.");
