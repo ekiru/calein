@@ -152,22 +152,72 @@ define procedure ((c) is (c 1), (c 2), (c 3), or (c 4))
 	to do (((c) is equal to (c 1)) or ((c) is equal to (c 2)) or
 		((c) is equal to (c 3)) or ((c) is equal to (c 4))).
 
+define procedure (try parse action after (first child)) to do {
+	define variable (again in action) with initial value (true).
+	define variable (children) with initial value (false).
+	define variable (literal) with initial value "".
+	define variable (paren) with initial value (false).
+	define variable (child) with initial value (false).
+	define procedure (error (msg))
+		to do {
+			write "Parse error: ".
+			write line (msg).
+			set (again in action) to (false).
+	}.
+	if (first child)
+	then (set (children) to ((#0, (first child)), (children)))
+	else (false).
+	while (again in action) do {
+		set (c) to (get character).
+		if ((not (c)) or ((c) is equal to (dot))
+			or ((c) is equal to (close paren))
+			or ((c) is equal to (close brace))) then {
+			set (again in action) to (false).
+			if (((c) is equal to (close paren))
+				or ((c) is equal to (close brace)))
+			then (unget character (c))
+			else (false).
+			set (tree) to
+				(make action (literal)
+				 with arguments (reverse list (children))).
+			set (again in action) to (false).
+		} else (if ((c) is (quote), (number sigil), (open paren), or (open brace)) then {
+			set (paren) to ((c) is equal to (open paren)).
+			if (not (paren)) then (unget character (c)) else (false).
+			set (child) to (parse).
+			if (not (child)) then (error "expected argument")
+			else {
+				set (children) to (((length (literal)), (child)), (children)).
+				if ((paren) and (not ((get character) is equal to (close paren))))
+				then (error "expected close paren")
+				else (false).
+			}.
+		} else (if ((c) is whitespace) then {
+			if ((length (literal)) is equal to #0)
+			then (append character (space) to (literal))
+			else (if ((last character of (literal)) is equal to (space))
+			then (if (children)
+				then (if ((first (first (children))) is equal to (length (literal)))
+					then (false)
+					else (append character (space) to (literal)))
+				else (false))
+			else (append character (space) to (literal))).
+		} else (append character (c) to (literal)))).
+	}.
+}.
+
 define procedure (parse) to do {
 	define variable (again) with initial value (true).
 	define variable (literal) with initial value #0.
 	define variable (in escape) with initial value (false).
-	define variable (again in action) with initial value (true).
 	define variable (again in literal) with initial value (true).
 	define variable (again in sequence) with initial value (true).
 	define variable (at start of literal) with initial value (false).
 	define variable (children) with initial value (false).
-	define variable (paren) with initial value (false).
-	define variable (child) with initial value (false).
 
 	define procedure (error (msg)) to do {
 		write "Parse error: ".
-		write line "unterminated string literal".
-		set (again in action) to (false).
+		write line (msg).
 		set (again in literal) to (false).
 		set (again in sequence) to (false).
 		set (again) to (false).
@@ -241,47 +291,8 @@ define procedure (parse) to do {
 		else (if ((c) is equal to (close brace))
 			then (unget character (c))
 		else (if (c) then {
-			set (again in action) to (true).
-			set (children) to (false).
-			set (literal) to "".
 			unget character (c).
-			while (again in action) do {
-				set (c) to (get character).
-				if ((not (c)) or ((c) is equal to (dot))
-				    or ((c) is equal to (close paren))
-				    or ((c) is equal to (close brace))) then {
-					set (again in action) to (false).
-					if (((c) is equal to (close paren))
-					    or ((c) is equal to (close brace)))
-					then (unget character (c))
-					else (false).
-					set (tree) to
-						(make action (literal)
-						 with arguments (reverse list (children))).
-					set (again in action) to (false).
-				} else (if ((c) is (quote), (number sigil), (open paren), or (open brace)) then {
-					set (paren) to ((c) is equal to (open paren)).
-					if (not (paren)) then (unget character (c)) else (false).
-					set (child) to (parse).
-					if (not (child)) then (error "expected argument")
-					else {
-						set (children) to (((length (literal)), (child)), (children)).
-						if ((paren) and (not ((get character) is equal to (close paren))))
-						then (error "expected close paren")
-						else (false).
-					}.
-				} else (if ((c) is whitespace) then {
-					if ((length (literal)) is equal to #0)
-					then (append character (space) to (literal))
-					else (if ((last character of (literal)) is equal to (space))
-					then (if (children)
-						then (if ((first (first (children))) is equal to (length (literal)))
-							then (false)
-							else (append character (space) to (literal)))
-						else (false))
-					else (append character (space) to (literal))).
-				} else (append character (c) to (literal)))).
-			}.
+			try parse action after (false).
 		} else (false)))))).
 	}.
 	tree.
