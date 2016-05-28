@@ -9,6 +9,9 @@ define variable (new line) with initial value #10.
 define variable (space) with initial value #32.
 define variable (quote) with initial value #34.
 define variable (number sigil) with initial value #35.
+define variable (open paren) with initial value #40.
+define variable (close paren) with initial value #41.
+define variable (dot) with initial value #46.
 define variable (character 0) with initial value #48.
 define variable (backslash) with initial value #92.
 define variable (character n) with initial value #110.
@@ -22,6 +25,8 @@ define procedure ((a) and (b))
 
 define procedure ((a) or (b) or (c))
 	to do (((a) or (b)) or (c)).
+define procedure ((a) or (b) or (c) or (d))
+	to do (((a) or (b)) or ((c) or (d))).
 
 define procedure ((x) is between (a) and (b)) to do {
 	define variable (found) with initial value (false).
@@ -65,6 +70,7 @@ define procedure (reverse list (list)) to do {
 define variable (literal kind) with initial value "literal kind".
 define variable (number kind) with initial value "number kind".
 define variable (sequence kind) with initial value "sequence kind".
+define variable (action kind) with initial value "action kind".
 
 define procedure (make literal (val))
 	to do ((literal kind), (val)).
@@ -84,6 +90,14 @@ define procedure ((p) is a sequence)
 	to do ((first (p)) is equal to (sequence kind)).
 define procedure (items of sequence (seq))
 	to do (second (seq)).
+define procedure (make action (name) with arguments (args))
+	to do ((action kind), ((name), (args))).
+define procedure ((p) is an action)
+	to do ((first (p)) is equal to (action kind)).
+define procedure (name of action (action))
+	to do (first (second (action))).
+define procedure (arguments of action (action))
+	to do (second (second (action))).
 
 define procedure (indent (n) times) to do {
 	while (not ((n) is equal to #0)) do {
@@ -111,25 +125,49 @@ define procedure (write tree (tree) with indent (indent))
 				write tree (first (items)) with indent ((indent) + #1).
 				set (items) to (second (items)).
 			}.
+		} else (if ((tree) is an action) then {
+			indent (indent) times.
+			write "Action: ".
+			write line (name of action (tree)).
+			define variable (args)
+				with initial value (arguments of action (tree)).
+			while (args) do {
+				indent ((indent) + #1) times.
+				write "Arg at ".
+				write line (first (first (args))).
+				write tree (second (first (args))) with indent ((indent) + #1).
+				set (args) to (second (args)).
+			}.
 		} else {
 			indent (indent) times.
 			write "unrecognized kind of tree: ".
 			write line (first (tree)).
-		})).
+		}))).
 	}.
+
+define procedure (last character of (s))
+	to do (character at ((length (s)) - #1) of (s)).
+
+define procedure ((c) is (c 1), (c 2), (c 3), or (c 4))
+	to do (((c) is equal to (c 1)) or ((c) is equal to (c 2)) or
+		((c) is equal to (c 3)) or ((c) is equal to (c 4))).
 
 define procedure (parse) to do {
 	define variable (again) with initial value (true).
 	define variable (literal) with initial value #0.
 	define variable (in escape) with initial value (false).
+	define variable (again in action) with initial value (true).
 	define variable (again in literal) with initial value (true).
 	define variable (again in sequence) with initial value (true).
 	define variable (at start of literal) with initial value (false).
 	define variable (children) with initial value (false).
+	define variable (paren) with initial value (false).
+	define variable (child) with initial value (false).
 
 	define procedure (error (msg)) to do {
 		write "Parse error: ".
 		write line "unterminated string literal".
+		set (again in action) to (false).
 		set (again in literal) to (false).
 		set (again in sequence) to (false).
 		set (again) to (false).
@@ -203,8 +241,47 @@ define procedure (parse) to do {
 		else (if ((c) is equal to (close brace))
 			then (unget character (c))
 		else (if (c) then {
-			write line (c).
-			write line "unexpected char".
+			set (again in action) to (true).
+			set (children) to (false).
+			set (literal) to "".
+			unget character (c).
+			while (again in action) do {
+				set (c) to (get character).
+				if ((not (c)) or ((c) is equal to (dot))
+				    or ((c) is equal to (close paren))
+				    or ((c) is equal to (close brace))) then {
+					set (again in action) to (false).
+					if (((c) is equal to (close paren))
+					    or ((c) is equal to (close brace)))
+					then (unget character (c))
+					else (false).
+					set (tree) to
+						(make action (literal)
+						 with arguments (reverse list (children))).
+					set (again in action) to (false).
+				} else (if ((c) is (quote), (number sigil), (open paren), or (open brace)) then {
+					set (paren) to ((c) is equal to (open paren)).
+					if (not (paren)) then (unget character (c)) else (false).
+					set (child) to (parse).
+					if (not (child)) then (error "expected argument")
+					else {
+						set (children) to (((length (literal)), (child)), (children)).
+						if ((paren) and (not ((get character) is equal to (close paren))))
+						then (error "expected close paren")
+						else (false).
+					}.
+				} else (if ((c) is whitespace) then {
+					if ((length (literal)) is equal to #0)
+					then (append character (space) to (literal))
+					else (if ((last character of (literal)) is equal to (space))
+					then (if (children)
+						then (if ((first (first (children))) is equal to (length (literal)))
+							then (false)
+							else (append character (space) to (literal)))
+						else (false))
+					else (append character (space) to (literal))).
+				} else (append character (c) to (literal)))).
+			}.
 		} else (false)))))).
 	}.
 	tree.
