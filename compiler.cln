@@ -460,31 +460,61 @@ define variable (expression context) with initial value "expression context".
 define variable (statement context) with initial value "statement context".
 define variable (definition context) with initial value "definition context".
 
+define procedure ((list) contains (elem)) to do {
+	define variable (found) with initial value (false).
+	while (list) do {
+		if ((first (list)) is equal to (elem)) then {
+			set (list) to (false).
+			set (found) to (true).
+		} else (set (list) to (second (list))).
+	}.
+	found.
+}.
+
+define variable (variable list) with initial value (false).
+
 define procedure (emit (ir) to (out) in (context)) to do {
 	if ((ir) is an ir call) then {
 		if (not ((context) is equal to (definition context))) then {
-			append string (name of ir call (ir)) to (out).
-			append string "(" to (out).
 			define variable (args) with initial value (arguments of ir call (ir)).
-			define variable (sep) with initial value "".
-			while (args) do {
-				append string (sep) to (out).
-				emit (first (args)) to (out) in (expression context).
-				set (sep) to ",".
-				set (args) to (second (args)).
-			}.
-			append string ")" to (out).
-			if ((context) is equal to (statement context))
-				then (append string ";\n" to (out))
-				else (false).
+			if ((args) and (not ((variable list) contains (name of ir call (ir))))) then {
+				append string (name of ir call (ir)) to (out).
+				append string "(" to (out).
+				define variable (sep) with initial value "".
+				while (args) do {
+					append string (sep) to (out).
+					emit (first (args)) to (out) in (expression context).
+					set (sep) to ",".
+					set (args) to (second (args)).
+				}.
+				append string ")" to (out).
+				if ((context) is equal to (statement context))
+					then (append string ";\n" to (out))
+					else (false).
+			} else (append string (name of ir call (ir)) to (out)).
 		} else (false).
 	} else (if ((ir) is an ir procedure) then {
 		if ((context) is equal to (definition context)) then {
 			append string "struct value *" to (out).
 			append string (C ident for action (name of ir procedure (ir))) to (out).
-			append string "(void){\nreturn " to (out).
+			append string "(" to (out).
+			define variable (old variable list) with initial value (variable list).
+			define variable (args) with initial value (arguments of action (name of ir procedure (ir))).
+			define variable (sep) with initial value "".
+			define variable (ident) with initial value (false).
+			if (args) then (while (args) do {
+				set (ident) to (C ident for action (second (first (args)))).
+				set (variable list) to ((ident), (variable list)).
+				append string (sep) to (out).
+				append string "struct value *" to (out).
+				append string (ident) to (out).
+				set (args) to (second (args)).
+				set (sep) to ", ".
+			}) else (append string "void" to (out)).
+			append string "){\nreturn " to (out).
 			emit (body of ir procedure (ir)) to (out) in (expression context).
 			append string ";\n}\n" to (out).
+			set (variable list) to (old variable list).
 		} else (false).
 	} else (if ((ir) is an ir literal) then {
 		if (not ((context) is equal to (definition context))) then {
@@ -509,6 +539,7 @@ define procedure (emit (ir) to (out) in (context)) to do {
 
 define variable (declarations) with initial value "".
 define variable (definitions) with initial value "".
+define variable (initializers) with initial value "".
 define variable (main) with initial value "".
 
 define procedure (compile (tree)) to do {
@@ -554,6 +585,7 @@ while (continue) do {
 write line "#include \"caleinrtl.inc.c\"".
 write line (definitions).
 write line "int main() {".
+write line (initializers).
 write (main).
 write line "return 0;".
 write line "}".
