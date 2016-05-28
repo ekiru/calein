@@ -3,9 +3,15 @@
 #include "str.h"
 #include "value.h"
 
-static void calein_write_SPACEline_ARG(struct value *s) {
+static struct value *calein_write_ARG(struct value *s) {
+	value_write(s);
+	return 0;
+};
+
+static struct value *calein_write_SPACEline_ARG(struct value *s) {
 	value_write(s);
 	putchar('\n');
+	return 0;
 };
 
 #define NUMBER_BINOP(name, op) \

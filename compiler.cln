@@ -23,6 +23,14 @@ define variable (character n) with initial value #110.
 define variable (open brace) with initial value #123.
 define variable (close brace) with initial value #125.
 
+define procedure ((list) at (index)) to do {
+	while (not ((index) is equal to #0)) do {
+		set (list) to (second (list)).
+		set (index) to ((index) - #1).
+	}.
+	first (list).
+}.
+
 define procedure ((a) or (b))
 	to do (if (a) then (a) else (b)).
 define procedure ((a) and (b))
@@ -340,15 +348,6 @@ define procedure (parse (at start of expression)) to do {
 	tree.
 }.
 
-define variable (continue) with initial value (true).
-define variable (tree) with initial value (false).
-
-define procedure (compile error (msg)) to do {
-	write "compile error: ".
-	write line (msg).
-	set (continue) to (false).
-}.
-
 define procedure (append string (t) to (s)) to do {
 	define variable (i) with initial value #0.
 	while (not ((i) is equal to (length (t)))) do {
@@ -421,6 +420,7 @@ define procedure (C string for literal (literal)) to do {
 }.
 
 define variable (ir call kind) with initial value "ir call kind".
+define variable (ir procedure kind) with initial value "ir procedure kind".
 define variable (ir literal kind) with initial value "ir literal kind".
 define variable (ir number kind) with initial value "ir number kind".
 
@@ -431,6 +431,15 @@ define procedure ((ir) is an ir call)
 define procedure (name of ir call (ir))
 	to do (first (second (ir))).
 define procedure (arguments of ir call (ir))
+	to do (second (second (ir))).
+
+define procedure (make ir procedure (name) with body (body))
+	to do ((ir procedure kind), ((name), (body))).
+define procedure ((ir) is an ir procedure)
+	to do ((first (ir)) is equal to (ir procedure kind)).
+define procedure (name of ir procedure (ir))
+	to do (first (second (ir))).
+define procedure (body of ir procedure (ir))
 	to do (second (second (ir))).
 
 define procedure (make ir literal (literal))
@@ -449,50 +458,73 @@ define procedure (value of ir number (ir))
 
 define variable (expression context) with initial value "expression context".
 define variable (statement context) with initial value "statement context".
+define variable (definition context) with initial value "definition context".
 
 define procedure (emit (ir) to (out) in (context)) to do {
 	if ((ir) is an ir call) then {
-		append string (name of ir call (ir)) to (out).
-		append string "(" to (out).
-		define variable (args) with initial value (arguments of ir call (ir)).
-		define variable (sep) with initial value "".
-		while (args) do {
-			append string (sep) to (out).
-			emit (first (args)) to (out) in (expression context).
-			set (sep) to ",".
-			set (args) to (second (args)).
-		}.
-		append string ")" to (out).
-		if ((context) is equal to (statement context))
-			then (append string ";" to (out))
-			else (false).
+		if (not ((context) is equal to (definition context))) then {
+			append string (name of ir call (ir)) to (out).
+			append string "(" to (out).
+			define variable (args) with initial value (arguments of ir call (ir)).
+			define variable (sep) with initial value "".
+			while (args) do {
+				append string (sep) to (out).
+				emit (first (args)) to (out) in (expression context).
+				set (sep) to ",".
+				set (args) to (second (args)).
+			}.
+			append string ")" to (out).
+			if ((context) is equal to (statement context))
+				then (append string ";\n" to (out))
+				else (false).
+		} else (false).
+	} else (if ((ir) is an ir procedure) then {
+		if ((context) is equal to (definition context)) then {
+			append string "struct value *" to (out).
+			append string (C ident for action (name of ir procedure (ir))) to (out).
+			append string "(void){\nreturn " to (out).
+			emit (body of ir procedure (ir)) to (out) in (expression context).
+			append string ";\n}\n" to (out).
+		} else (false).
 	} else (if ((ir) is an ir literal) then {
-		append string "value_make_string_from_c_string(" to (out).
-		append string (value of ir literal (ir)) to (out).
-		append string ")" to (out).
-		if ((context) is equal to (statement context))
-			then (append string ";" to (out))
-			else (false).
+		if (not ((context) is equal to (definition context))) then {
+			append string "value_make_string_from_c_string(" to (out).
+			append string (value of ir literal (ir)) to (out).
+			append string ")" to (out).
+			if ((context) is equal to (statement context))
+				then (append string ";\n" to (out))
+				else (false).
+		} else (false).
 	} else (if ((ir) is an ir number) then {
-		append string "value_make_number(" to (out).
-		append string (string of number (value of ir number (ir))) to (out).
-		append string ")" to (out).
-	} else (compile error "unrecognized IR kind"))).
+		if (not ((context) is equal to (definition context))) then {
+			append string "value_make_number(" to (out).
+			append string (string of number (value of ir number (ir))) to (out).
+			append string ")" to (out).
+			if ((context) is equal to (statement context))
+				then (append string ";\n" to (out))
+				else (false).
+		} else (false).
+	} else (compile error "unrecognized IR kind")))).
 }.
 
 define variable (declarations) with initial value "".
 define variable (definitions) with initial value "".
-define variable (main) with initial value "	".
+define variable (main) with initial value "".
 
 define procedure (compile (tree)) to do {
 	if ((tree) is an action) then {
 		define variable (ir args) with initial value (false).
 		define variable (args) with initial value (arguments of action (tree)).
-		while (args) do {
-			set (ir args) to ((compile (second (first (args)))), (ir args)).
-			set (args) to (second (args)).
+		if ((name of action (tree)) is equal to "define procedure  to do")
+			then (make ir procedure (second ((args) at #0))
+				with body (compile (second ((args) at #1))))
+		else {
+			while (args) do {
+				set (ir args) to ((compile (second (first (args)))), (ir args)).
+				set (args) to (second (args)).
+			}.
+			make ir call (C ident for action (tree)) with arguments (reverse list (ir args)).
 		}.
-		make ir call (C ident for action (tree)) with arguments (reverse list (ir args)).
 	} else (if ((tree) is a number) then {
 		make ir number (value of number (tree)).
 	} else (if ((tree) is a literal) then {
@@ -500,14 +532,28 @@ define procedure (compile (tree)) to do {
 	} else (compile error "unsupported kind of tree"))).
 }.
 
+define variable (continue) with initial value (true).
+define variable (tree) with initial value (false).
+define variable (ir) with initial value (false).
+
+define procedure (compile error (msg)) to do {
+	write "compile error: ".
+	write line (msg).
+	set (continue) to (false).
+}.
+
 while (continue) do {
 	set (tree) to (parse (true)).
 	if (tree) then {
-		emit (compile (tree)) to (main) in (statement context).
+		set (ir) to (compile (tree)).	
+		emit (ir) to (definitions) in (definition context).
+		emit (ir) to (main) in (statement context).
 	} else (set (continue) to (false)).
 }.
 
 write line "#include \"caleinrtl.inc.c\"".
+write line (definitions).
 write line "int main() {".
-write line (main).
+write (main).
+write line "return 0;".
 write line "}".
