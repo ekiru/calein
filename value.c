@@ -79,7 +79,7 @@ struct value *value_pair_first(struct value *pair) {
 		return pair->u.pair[0];
 	} else {
 		log_error("Cannot take first of non-pair.");
-		return 0;
+		exit(1);
 	}
 }
 
@@ -88,7 +88,7 @@ struct value *value_pair_second(struct value *pair) {
 		return pair->u.pair[1];
 	} else {
 		log_error("Cannot take second of non-pair.");
-		return 0;
+		exit(1);
 	}
 }
 
