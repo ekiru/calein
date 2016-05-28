@@ -136,8 +136,7 @@ static struct syntax_tree *try_parse_following_action(struct syntax_tree *firstC
 	struct syntax_tree *tree = syntax_tree_new(syntax_tree_kind_action);
 	string_init_empty(&tree->u.action.selector);
 	if (firstChild) {
-		tree->u.action.arg_indexes[tree->u.action.arg_count] =
-			tree->u.action.selector.length;
+		tree->u.action.arg_indexes[tree->u.action.arg_count] = 0;
 		tree->u.action.args[tree->u.action.arg_count] = firstChild;
 		tree->u.action.arg_count++;
 	}
@@ -204,7 +203,10 @@ static void parse_file_ungetc(int c, void *fp) {
 }
 
 struct syntax_tree *parse(void) {
-	FILE *f = stdin;
+	return parse_from_file(stdin);
+}
+
+struct syntax_tree *parse_from_file(FILE *f) {
 	return parse_generic(true, f, parse_file_getc, parse_file_ungetc);
 }
 

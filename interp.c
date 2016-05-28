@@ -365,7 +365,7 @@ static bool define_primitive(
 	}
 }
 
-int main() {
+int main(int argc, char **argv) {
 	environment = 0;
 	struct definition write_line_definition;
 	struct definition write_definition;
@@ -404,8 +404,17 @@ int main() {
 		return 1;
 	}
 
+	FILE *input = 0;
+	if (argc == 2) {
+		input = fopen(argv[1], "r");
+		if (!input) {
+			log_error("Unable to open file %s", argv[1]);
+			return 1;
+		}
+	}
+
 	for (;;) {
-		struct syntax_tree *tree = parse();
+		struct syntax_tree *tree = input ? parse_from_file(input) : parse();
 		if (tree) {
 			interp(tree);
 			syntax_tree_free(tree);
@@ -413,5 +422,8 @@ int main() {
 			break;
 		}
 	}	
+	if (input) {
+		fclose(input);
+	}
 	return 0;
 }
