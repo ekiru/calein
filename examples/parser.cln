@@ -177,20 +177,24 @@ define procedure (try parse action after (first child)) to do {
 				or ((c) is equal to (close brace)))
 			then (unget character (c))
 			else (false).
-			set (tree) to
+			if ((length (literal)) is equal to #0)
+			then (set (tree) to (first child))
+			else (set (tree) to
 				(make action (literal)
-				 with arguments (reverse list (children))).
+				 with arguments (reverse list (children)))).
 			set (again in action) to (false).
 		} else (if ((c) is (quote), (number sigil), (open paren), or (open brace)) then {
 			set (paren) to ((c) is equal to (open paren)).
 			if (not (paren)) then (unget character (c)) else (false).
-			set (child) to (parse).
+			set (child) to (parse (paren)).
 			if (not (child)) then (error "expected argument")
 			else {
 				set (children) to (((length (literal)), (child)), (children)).
-				if ((paren) and (not ((get character) is equal to (close paren))))
-				then (error "expected close paren")
-				else (false).
+				if (paren) then {
+					if (not ((c) is equal to (close paren)))
+					then (error "expected close paren")
+					else (false).
+				} else (false).
 			}.
 		} else (if ((c) is whitespace) then {
 			if ((length (literal)) is equal to #0)
@@ -204,9 +208,10 @@ define procedure (try parse action after (first child)) to do {
 			else (append character (space) to (literal))).
 		} else (append character (c) to (literal)))).
 	}.
+	tree.
 }.
 
-define procedure (parse) to do {
+define procedure (parse (at start of expression)) to do {
 	define variable (again) with initial value (true).
 	define variable (literal) with initial value #0.
 	define variable (in escape) with initial value (false).
@@ -249,6 +254,9 @@ define procedure (parse) to do {
 					then {
 					set (again in literal) to (false).
 					set (tree) to (make literal (literal)).
+					if (at start of expression)
+					then (set (tree) to (try parse action after (tree)))
+					else (false).
 				}
 				else (append character (c) to (literal))))).
 			}.
@@ -262,8 +270,11 @@ define procedure (parse) to do {
 					(error "Unexpected EOF at beginning of number")
 				else (if (not ((c) is digit)) then {
 					if (c) then (unget character (c)) else (false).
-					set (tree) to (make number (literal)).
 					set (again in literal) to (false).
+					set (tree) to (make number (literal)).
+					if (at start of expression)
+					then (set (tree) to (try parse action after (tree)))
+					else (false).
 				} else {
 					set (literal) to (((literal) * #10) + ((c) - (character 0))).
 					set (at start of literal) to (false).
@@ -280,7 +291,7 @@ define procedure (parse) to do {
 					set (tree) to (make sequence (reverse list (children))).
 				} else {
 					unget character (c).
-					define variable (child) with initial value (parse).
+					define variable (child) with initial value (parse (true)).
 					if (child)
 					then (set (children) to ((child), (children)))
 					else (false).
@@ -298,5 +309,6 @@ define procedure (parse) to do {
 	tree.
 }.
 
-define variable (tree) with initial value (parse).
-if (tree) then (write tree (tree) with indent #0) else (false).
+define variable (tree) with initial value (parse (true)).
+if (tree) then (write tree (tree) with indent #0)
+	else (write line "no expression").
