@@ -10,6 +10,7 @@
 #include "syntax.h"
 
 
+static size_t line = 0;
 static struct syntax_tree *try_parse_following_action(struct syntax_tree *tree, void *data, int (*getc)(void *), void (*ungetc)(int, void *));
 
 static struct syntax_tree *parse_generic(bool start_of_expression, void *data, int (*getc)(void *), void (*ungetc)(int, void *)) {
@@ -18,6 +19,9 @@ static struct syntax_tree *parse_generic(bool start_of_expression, void *data, i
 		c = getc(data);
 		if (c == EOF) {
 			return 0;
+		}
+		if (c == '\n') {
+			line++;
 		}
 		if (c == '"') {
 			struct syntax_tree *tree = syntax_tree_new(syntax_tree_kind_literal); 
@@ -29,6 +33,9 @@ static struct syntax_tree *parse_generic(bool start_of_expression, void *data, i
 			bool in_escape = false;
 			for (;;) {
 				c = getc(data);
+				if (c == '\n') {
+					line++;
+				}
 				if (c == EOF) {
 					log_error("Parse error: unterminated string literal.");
 					goto literal_err;
@@ -73,9 +80,15 @@ static struct syntax_tree *parse_generic(bool start_of_expression, void *data, i
 			}
 			for (;;) {
 				c = getc(data);
+				if (c == '\n') {
+					line++;
+				}
 				if (start && c == '-') {
 					negative = true;
 					c = getc(data);
+					if (c == '\n') {
+						line++;
+					}
 				}
 				if (start && c == EOF) {
 					log_error("Unexpected EOF at beginning of numeric literal.");
@@ -104,6 +117,9 @@ static struct syntax_tree *parse_generic(bool start_of_expression, void *data, i
 			size_t next = 0;
 			for (;;) {
 				c = getc(data);
+				if (c == '\n') {
+					line++;
+				}
 				if (c == EOF) {
 					log_error("Unexpected EOF in sequence.");
 					syntax_tree_free(tree);
@@ -171,7 +187,7 @@ static struct syntax_tree *try_parse_following_action(struct syntax_tree *firstC
 			tree->u.action.args[tree->u.action.arg_count] = child;
 			tree->u.action.arg_count++;
 			if (paren && getc(data) != ')') {
-				log_error("Subexpression had no close paren.");
+				log_error("Subexpression had no close paren at line %lu.", line);
 				goto action_err;
 			}
 		} else if (isspace(c)) {
