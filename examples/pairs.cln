@@ -1,0 +1,6 @@
+define global variable (pt)
+	with initial value (#2, #3).
+
+write line (first (pt)).
+write line (second (pt)).
+write line (pt).
