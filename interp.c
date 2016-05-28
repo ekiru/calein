@@ -74,7 +74,7 @@ static struct value *primitive_write(const struct action *action) {
 	struct value *v = eval(action->args[0]);
 	switch (v->kind) {
 	case value_kind_string:
-		printf("%*s", (int) v->u.string.length, v->u.string.data);
+		printf("%.*s", (int) v->u.string.length, v->u.string.data);
 		break;
 	case value_kind_boolean:
 		if (v->u.boolean) {
