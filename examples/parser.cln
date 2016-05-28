@@ -9,13 +9,6 @@ define variable (character 0) with initial value #48.
 define variable (backslash) with initial value #92.
 define variable (character n) with initial value #110.
 
-define variable (again) with initial value (true).
-
-define variable (literal) with initial value #0.
-define variable (in escape) with initial value (false).
-define variable (again in literal) with initial value (true).
-define variable (at start of literal) with initial value (false).
-
 define procedure ((a) or (b))
 	to do (if (a) then (a) else (b)).
 define procedure ((a) and (b))
@@ -34,16 +27,6 @@ define procedure ((x) is between (a) and (b)) to do {
 
 define procedure ((c) is digit) to do 
 	((c) is between #48 and #58).
-
-define variable (error occurred) with initial value (false).
-
-define procedure (error (msg)) to do {
-	write "Parse error: ".
-	write line "unterminated string literal".
-	set (again in literal) to (false).
-	set (again) to (false).
-	set (error occurred) to (true).
-}.
 
 
 define variable (ungotten character) with initial value (false).
@@ -74,8 +57,6 @@ define procedure (value of number (num))
 	to do (second (num)).
 
 
-define variable (tree) with initial value (false).
-
 define procedure (write tree (tree))
 	to do {
 		if ((tree) is a literal)
@@ -86,59 +67,80 @@ define procedure (write tree (tree))
 				write "Number: ".
 				write line (value of number (tree)).
 		} else {
-			error "unrecognized kind of tree".
+			write line "unrecognized kind of tree".
 		}).
 	}.
 
-while (again) do {
-	set (c) to (get character).
-	if ((c) is equal to (quote)) then {
-		set (literal) to "".
-		set (again in literal) to (true).
-		set (in escape) to (false).
-		while (again in literal) do {
-			set (c) to (get character).
-			if (not (c))
-				then (error "unterminated string literal")
-			else (if (in escape)
-				then {if (((c) is equal to (backslash)) or ((c) is equal to (quote)))
-					then (append character (c) to (literal))
-				else (if ((c) is equal to (character n))
-					then (append character (new line) to (literal))
-				else (error "undefined escape sequence")).
-				set (in escape) to (false).
-			}
-			else (if ((c) is equal to (backslash))
-				then (set (in escape) to (true))
-			else (if ((c) is equal to (quote))
-				then {
-				set (again in literal) to (false).
-				set (tree) to (make literal (literal)).
-			}
-			else (append character (c) to (literal))))).
-		}.
-	} else (if ((c) is equal to (number sigil)) then {
-		set (again in literal) to (true).
-		set (literal) to #0.
-		set (at start of literal) to (true).
-		while (again in literal) do {
-			set (c) to (get character).
-			if ((at start of literal) and (not (c))) then
-				(error "Unexpected EOF at beginning of number")
-			else (if (not ((c) is digit)) then {
-				set (tree) to (make number (literal)).
-				set (again in literal) to (false).
-			} else {
-				set (literal) to (((literal) * #10) + ((c) - (character 0))).
-				set (at start of literal) to (false).
-			}).
-		}.
-	} else (if (c) then {
-		write line (c).
-		write line "unexpected char".
-	} else (set (again) to (false)))).
-	if (tree) then {
-		write tree (tree).
-		set (tree) to (false).
-	} else (false).
+define procedure (parse) to do {
+	define variable (again) with initial value (true).
+	define variable (literal) with initial value #0.
+	define variable (in escape) with initial value (false).
+	define variable (again in literal) with initial value (true).
+	define variable (at start of literal) with initial value (false).
+
+	define procedure (error (msg)) to do {
+		write "Parse error: ".
+		write line "unterminated string literal".
+		set (again in literal) to (false).
+		set (again) to (false).
+	}.
+
+	define variable (tree) with initial value (false).
+	while (again) do {
+		set (c) to (get character).
+		if ((c) is equal to (quote)) then {
+			set (literal) to "".
+			set (again in literal) to (true).
+			set (in escape) to (false).
+			while (again in literal) do {
+				set (c) to (get character).
+				if (not (c))
+					then (error "unterminated string literal")
+				else (if (in escape)
+					then {if (((c) is equal to (backslash)) or ((c) is equal to (quote)))
+						then (append character (c) to (literal))
+					else (if ((c) is equal to (character n))
+						then (append character (new line) to (literal))
+					else (error "undefined escape sequence")).
+					set (in escape) to (false).
+				}
+				else (if ((c) is equal to (backslash))
+					then (set (in escape) to (true))
+				else (if ((c) is equal to (quote))
+					then {
+					set (again in literal) to (false).
+					set (tree) to (make literal (literal)).
+				}
+				else (append character (c) to (literal))))).
+			}.
+		} else (if ((c) is equal to (number sigil)) then {
+			set (again in literal) to (true).
+			set (literal) to #0.
+			set (at start of literal) to (true).
+			while (again in literal) do {
+				set (c) to (get character).
+				if ((at start of literal) and (not (c))) then
+					(error "Unexpected EOF at beginning of number")
+				else (if (not ((c) is digit)) then {
+					if (c) then (unget character (c)) else (false).
+					set (tree) to (make number (literal)).
+					set (again in literal) to (false).
+				} else {
+					set (literal) to (((literal) * #10) + ((c) - (character 0))).
+					set (at start of literal) to (false).
+				}).
+			}.
+		} else (if (c) then {
+			write line (c).
+			write line "unexpected char".
+		} else (set (again) to (false)))).
+		if (tree) then {
+			write tree (tree).
+			set (tree) to (false).
+		} else (false).
+	}.
+	tree.
 }.
+
+define variable (tree) with initial value (parse).
+if (tree) then (write tree (tree)) else (false).
