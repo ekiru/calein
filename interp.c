@@ -4,23 +4,7 @@
 #include "err.h"
 #include "parser.h"
 #include "syntax.h"
-
-enum value_kind {
-	value_kind_string,
-	value_kind_boolean,
-	value_kind_number,
-	value_kind_pair,
-};
-
-struct value {
-	enum value_kind kind;
-	union {
-		struct string string;
-		bool boolean;
-		int64_t number;
-		struct value *pair[2];
-	} u;
-};
+#include "value.h"
 
 enum definition_kind {
 	definition_kind_primitive,
@@ -43,25 +27,7 @@ static struct value *eval(struct syntax_tree *tree);
 static struct definition *lookup(const struct action *action);
 
 #define ARITH_PRIM(name, op) struct value *primitive_ ## name(const struct action *action) { \
-	struct value *x = eval(action->args[0]); \
-	struct value *y = eval(action->args[1]); \
-	struct value *res = calloc(1, sizeof *res); \
-	if (!x || !y) { \
-		log_error("Cannot " #name " valueless expressions"); \
-		goto err; \
-	} \
-	if (x->kind != value_kind_number || y->kind != value_kind_number) { \
-		log_error("Cannot " #name " non-numbers"); \
-		goto err; \
-	} \
-	if (res) { \
-		res->kind = value_kind_number; \
-		res->u.number = x->u.number op y->u.number; \
-	} \
-	return res; \
-err: \
-	free(res); \
-	return 0; \
+	return value_make_number(value_number_value(eval(action->args[0])) op value_number_value(eval(action->args[1]))); \
 }
 
 ARITH_PRIM(add, +)
@@ -73,59 +39,20 @@ ARITH_PRIM(mod, %)
 #undef ARITH_PRIM
 
 static struct value *primitive_pair(const struct action *action) {
-	struct value *res = calloc(1, sizeof *res);
-	res->kind = value_kind_pair;
-	res->u.pair[0] = eval(action->args[0]);
-	res->u.pair[1] = eval(action->args[1]);
-	return res;
+	return value_make_pair(eval(action->args[0]), eval(action->args[1]));
 }
 
 static struct value *primitive_first(const struct action *action) {
-	struct value *pair = eval(action->args[0]);
-	if (pair && pair->kind == value_kind_pair) {
-		return pair->u.pair[0];
-	} else {
-		log_error("Cannot take first of non-pair.");
-		return 0;
-	}
+	return value_pair_first(eval(action->args[0]));
 }
 
 static struct value *primitive_second(const struct action *action) {
-	struct value *pair = eval(action->args[0]);
-	if (pair && pair->kind == value_kind_pair) {
-		return pair->u.pair[1];
-	} else {
-		log_error("Cannot take second of non-pair.");
-		return 0;
-	}
+	return value_pair_second(eval(action->args[0]));
 }
 
-static void write_value(struct value *v) {
-	switch (v->kind) {
-	case value_kind_string:
-		printf("%.*s", (int) v->u.string.length, v->u.string.data);
-		break;
-	case value_kind_boolean:
-		if (v->u.boolean) {
-			printf("true");
-		} else {
-			printf("false");
-		}
-		break;
-	case value_kind_number:
-		printf("%lld", v->u.number);
-		break;
-	case value_kind_pair:
-		write_value(v->u.pair[0]);
-		printf(", ");
-		write_value(v->u.pair[1]);
-		break;
-	default:
-		log_error("Unrecognized value kind %d", v->kind);
-	}
-}
+
 static struct value *primitive_write(const struct action *action) {
-	write_value(eval(action->args[0]));
+	value_write(eval(action->args[0]));
 	return 0;
 }
 
@@ -136,30 +63,18 @@ static struct value *primitive_write_line(const struct action *action) {
 }
 
 static struct value *primitive_read_character(const struct action *action) {
-	struct value *res = calloc(1, sizeof *res);
-	if (!res) {
-		log_error("Unable to allocate memory.");
-		return res;
-	}
 	int c = getchar();
 	if (c == EOF) {
-		res->kind = value_kind_boolean;
-		res->u.boolean = false;
+		return value_make_boolean(false);
 	} else {
-		res->kind = value_kind_number;
-		res->u.number = (int64_t) c;
+		return value_make_number((int64_t) c);
 	}
-	return res;
 }
 
 static struct value *primitive_append_character_to(const struct action *action) {
 	struct value *c = eval(action->args[0]);
 	struct value *s = eval(action->args[1]);
-	if (!c || c->kind != value_kind_number || !s || s->kind != value_kind_string) {
-		log_error("Invalid types for append character () to ().");
-		return 0;
-	}
-	if (!string_add_character(&s->u.string, (char) c->u.number)) {
+	if (!string_add_character(value_string_value(s), (char) value_number_value(c))) {
 		log_error ("Error appending to string.");
 	}
 	return 0;
@@ -167,66 +82,34 @@ static struct value *primitive_append_character_to(const struct action *action) 
 
 static struct value *primitive_trim_right(const struct action *action) {
 	struct value *s = eval(action->args[0]);
-	if (!s || s->kind != value_kind_string) {
-		log_error("Cannot trim non-string.");
-		return 0;
-	}
-	string_trim_right(&s->u.string);
+	string_trim_right(value_string_value(s));
 	return 0;
 }
 
 static struct value *primitive_length(const struct action *action) {
 	struct value *s = eval(action->args[0]);
-	if (!s || s->kind != value_kind_string) {
-		log_error("Cannot take length of non-string.");
-		return 0;
-	}
-	struct value *res = calloc(1, sizeof *res);
-	res->kind = value_kind_number;
-	res->u.number = s->u.string.length;
-	return res;
+	return value_make_number(value_string_value(s)->length);
 }
 
 static struct value *primitive_character_at_of(const struct action *action) {
-	struct value *i = eval(action->args[0]);
-	struct value *s = eval(action->args[1]);
-	if (!i || i->kind != value_kind_number || !s || s->kind != value_kind_string) {
-		log_error("Incorrect types for `character at (index) of (string)");
-		return 0;
-	}
-	if (i->u.number < 0 || i->u.number >= s->u.string.length) {
+	int64_t i = value_number_value(eval(action->args[0]));
+	struct string *s = value_string_value(eval(action->args[1]));
+	if (i < 0 || i >= s->length) {
 		log_error("Index out of bounds for string");
 		return 0;
 	}
-	struct value *res = calloc(1, sizeof *res);
-	res->kind = value_kind_number;
-	res->u.number = s->u.string.data[i->u.number];
-	return res;
+	return value_make_number(s->data[i]);
 }
 
 static struct value *primitive_not(const struct action *action) {
-	struct value *res = calloc(1, sizeof *res);
-	struct value *v;
-	if (!res) {
-		log_error("Unable to allocate memory.");
-		return res;
-	}
-	v = eval(action->args[0]);
-	if (!v) {
-		log_error("not requires a boolean");
-		free(res);
-		return 0;
-	}
-	res->kind = value_kind_boolean;
-	res->u.boolean = v->kind == value_kind_boolean ? !v->u.boolean : false;
-	return res;
+	return value_make_boolean(!value_boolean_is_true(eval(action->args[0])));
 }
 
 static bool value_is_equal_to(struct value *x, struct value *y) {
 	if (x->kind == y->kind) {
 		switch (x->kind) {
 		case value_kind_boolean:
-			return x->u.boolean = y->u.boolean;
+			return x->u.boolean == y->u.boolean;
 			break;
 		case value_kind_string:
 			return string_equals(&x->u.string, &y->u.string);
@@ -249,19 +132,11 @@ static bool value_is_equal_to(struct value *x, struct value *y) {
 }
 
 static struct value *primitive_is_equal_to(const struct action *action) {
-	struct value *x = eval(action->args[0]);
-	struct value *y = eval(action->args[1]);
-	struct value *res = calloc(1, sizeof *res);
-	if (res) {
-		res->kind = value_kind_boolean;
-		res->u.boolean = value_is_equal_to(x, y);
-	}
-	return res;
+	return value_make_boolean(value_is_equal_to(eval(action->args[0]), eval(action->args[1])));
 }
 
 static struct value *primitive_if_then_else(const struct action *action) {
-	struct value *condition = eval(action->args[0]);
-	if (condition && (condition->kind != value_kind_boolean || condition->u.boolean)) {
+	if (value_boolean_is_true(eval(action->args[0]))) {
 		// a non-null non-boolean is always true.
 		return eval(action->args[1]);
 	} else {
@@ -271,8 +146,7 @@ static struct value *primitive_if_then_else(const struct action *action) {
 
 static struct value *primitive_while_do(const struct action *action) {
 	for (;;) {
-		struct value *condition = eval(action->args[0]);
-		if (!condition || (condition->kind == value_kind_boolean && !condition->u.boolean)) {
+		if (!value_boolean_is_true(eval(action->args[0]))) {
 			return 0;
 		}
 		eval(action->args[1]);
@@ -377,22 +251,10 @@ static struct value *eval(struct syntax_tree *tree) {
 	struct value *res = 0;
 	switch (tree->kind) {
 	case syntax_tree_kind_literal:
-		res = calloc(1, sizeof *res);
-		res->kind = value_kind_string;
-		if (string_copy(&res->u.string, &tree->u.literal)) {
-			return res;
-		} else {
-			free(res);
-			return 0;
-		}
+		return value_make_string(&tree->u.literal);
 		break;
 	case syntax_tree_kind_number:
-		res = calloc(1, sizeof *res);
-		if (res) {
-			res->kind = value_kind_number;
-			res->u.number = tree->u.number;
-		}
-		return res;
+		return value_make_number(tree->u.number);
 		break;
 	case syntax_tree_kind_action:
 		def = lookup(&tree->u.action);
@@ -426,10 +288,6 @@ static struct value *eval(struct syntax_tree *tree) {
 
 static void interp(struct syntax_tree *tree) {
 	struct value *res = eval(tree);
-	if (res && res->kind == value_kind_string) {
-		string_finish(&res->u.string);
-	}
-	free(res);
 }
 
 static bool define_primitive(
