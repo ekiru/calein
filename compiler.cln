@@ -421,6 +421,8 @@ define procedure (C string for literal (literal)) to do {
 
 define variable (ir call kind) with initial value "ir call kind".
 define variable (ir procedure kind) with initial value "ir procedure kind".
+define variable (ir variable kind) with initial value "ir variable kind".
+define variable (ir assignment kind) with initial value "ir assignment kind".
 define variable (ir literal kind) with initial value "ir literal kind".
 define variable (ir number kind) with initial value "ir number kind".
 
@@ -442,6 +444,24 @@ define procedure (name of ir procedure (ir))
 define procedure (body of ir procedure (ir))
 	to do (second (second (ir))).
 
+define procedure (make ir variable (name) with initial value (initial value))
+	to do ((ir variable kind), ((name), (initial value))).
+define procedure ((ir) is an ir variable)
+	to do ((first (ir)) is equal to (ir variable kind)).
+define procedure (name of ir variable (ir))
+	to do (first (second (ir))).
+define procedure (initial value of ir variable (ir))
+	to do (second (second (ir))).
+
+define procedure (make ir assignment (name) with value (value))
+	to do ((ir assignment kind), ((name), (value))).
+define procedure ((ir) is an ir assignment)
+	to do ((first (ir)) is equal to (ir assignment kind)).
+define procedure (name of ir assignment (ir))
+	to do (first (second (ir))).
+define procedure (value of ir assignment (ir))
+	to do (second (second (ir))).
+
 define procedure (make ir literal (literal))
 	to do ((ir literal kind), (literal)).
 define procedure ((ir) is an ir literal)
@@ -459,6 +479,7 @@ define procedure (value of ir number (ir))
 define variable (expression context) with initial value "expression context".
 define variable (statement context) with initial value "statement context".
 define variable (definition context) with initial value "definition context".
+define variable (initializer context) with initial value "initializer context".
 
 define procedure ((list) contains (elem)) to do {
 	define variable (found) with initial value (false).
@@ -473,9 +494,13 @@ define procedure ((list) contains (elem)) to do {
 
 define variable (variable list) with initial value (false).
 
+define procedure ((context) is an evaluation)
+	to do (not (((context) is equal to (definition context))
+		or ((context) is equal to (initializer context)))).
+
 define procedure (emit (ir) to (out) in (context)) to do {
 	if ((ir) is an ir call) then {
-		if (not ((context) is equal to (definition context))) then {
+		if ((context) is an evaluation) then {
 			define variable (args) with initial value (arguments of ir call (ir)).
 			if ((args) and (not ((variable list) contains (name of ir call (ir))))) then {
 				append string (name of ir call (ir)) to (out).
@@ -516,8 +541,33 @@ define procedure (emit (ir) to (out) in (context)) to do {
 			append string ";\n}\n" to (out).
 			set (variable list) to (old variable list).
 		} else (false).
+	} else (if ((ir) is an ir variable) then {
+		define variable (name) with initial value
+			(C ident for action (name of ir variable (ir))).
+		if ((context) is equal to (definition context)) then {
+			append string "struct value *" to (out).
+			append string (name) to (out).
+			append string ";\n" to (out).
+			set (variable list) to ((name), (variable list)).
+		} else (if ((context) is equal to (initializer context)) then {
+			append string (C ident for action (name of ir variable (ir))) to (out).
+			append string " = " to (out).
+			emit (initial value of ir variable (ir)) to (out) in (expression context).
+			append string ";\n" to (out).
+		} else (false)).
+	} else (if ((ir) is an ir assignment) then {
+		if ((context) is an evaluation) then {
+			append string "(" to (out).
+			append string (C ident for action (name of ir assignment (ir))) to (out).
+			append string " = " to (out).
+			emit (value of ir assignment (ir)) to (out) in (expression context).
+			append string ")" to (out).
+			if ((context) is equal to (statement context))
+				then (append string ";\n" to (out))
+				else (false).
+		} else (false).
 	} else (if ((ir) is an ir literal) then {
-		if (not ((context) is equal to (definition context))) then {
+		if ((context) is an evaluation) then {
 			append string "value_make_string_from_c_string(" to (out).
 			append string (value of ir literal (ir)) to (out).
 			append string ")" to (out).
@@ -526,7 +576,7 @@ define procedure (emit (ir) to (out) in (context)) to do {
 				else (false).
 		} else (false).
 	} else (if ((ir) is an ir number) then {
-		if (not ((context) is equal to (definition context))) then {
+		if ((context) is an evaluation) then {
 			append string "value_make_number(" to (out).
 			append string (string of number (value of ir number (ir))) to (out).
 			append string ")" to (out).
@@ -534,7 +584,7 @@ define procedure (emit (ir) to (out) in (context)) to do {
 				then (append string ";\n" to (out))
 				else (false).
 		} else (false).
-	} else (compile error "unrecognized IR kind")))).
+	} else (compile error "unrecognized ir kind")))))).
 }.
 
 define variable (declarations) with initial value "".
@@ -549,13 +599,19 @@ define procedure (compile (tree)) to do {
 		if ((name of action (tree)) is equal to "define procedure  to do")
 			then (make ir procedure (second ((args) at #0))
 				with body (compile (second ((args) at #1))))
+		else (if ((name of action (tree)) is equal to "define variable  with initial value")
+			then (make ir variable (second ((args) at #0))
+				with initial value (compile (second ((args) at #1))))
+		else (if ((name of action (tree)) is equal to "set  to")
+			then (make ir assignment (second ((args) at #0))
+				with value (compile (second ((args) at #1))))
 		else {
 			while (args) do {
 				set (ir args) to ((compile (second (first (args)))), (ir args)).
 				set (args) to (second (args)).
 			}.
 			make ir call (C ident for action (tree)) with arguments (reverse list (ir args)).
-		}.
+		})).
 	} else (if ((tree) is a number) then {
 		make ir number (value of number (tree)).
 	} else (if ((tree) is a literal) then {
@@ -578,6 +634,7 @@ while (continue) do {
 	if (tree) then {
 		set (ir) to (compile (tree)).	
 		emit (ir) to (definitions) in (definition context).
+		emit (ir) to (initializers) in (initializer context).
 		emit (ir) to (main) in (statement context).
 	} else (set (continue) to (false)).
 }.
