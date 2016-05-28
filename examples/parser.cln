@@ -45,6 +45,18 @@ define procedure (error (msg)) to do {
 	set (error occurred) to (true).
 }.
 
+
+define variable (ungotten character) with initial value (false).
+define procedure (get character) to do {
+	if (ungotten character) then {
+		define variable (tmp) with initial value (ungotten character).
+		set (ungotten character) to (false).
+		tmp.
+	} else (read character).
+}.
+define procedure (unget character (c))
+	to do (set (ungotten character) to (c)).
+
 define variable (literal kind) with initial value "literal kind".
 define variable (number kind) with initial value "number kind".
 
@@ -62,7 +74,7 @@ define procedure (value of number (num))
 	to do (second (num)).
 
 
-define variable (tree) with initial value ((false), (false)).
+define variable (tree) with initial value (false).
 
 define procedure (write tree (tree))
 	to do {
@@ -79,13 +91,13 @@ define procedure (write tree (tree))
 	}.
 
 while (again) do {
-	set (c) to (read character).
+	set (c) to (get character).
 	if ((c) is equal to (quote)) then {
 		set (literal) to "".
 		set (again in literal) to (true).
 		set (in escape) to (false).
 		while (again in literal) do {
-			set (c) to (read character).
+			set (c) to (get character).
 			if (not (c))
 				then (error "unterminated string literal")
 			else (if (in escape)
@@ -105,13 +117,12 @@ while (again) do {
 			}
 			else (append character (c) to (literal))))).
 		}.
-		write tree (tree).
 	} else (if ((c) is equal to (number sigil)) then {
 		set (again in literal) to (true).
 		set (literal) to #0.
 		set (at start of literal) to (true).
 		while (again in literal) do {
-			set (c) to (read character).
+			set (c) to (get character).
 			if ((at start of literal) and (not (c))) then
 				(error "Unexpected EOF at beginning of number")
 			else (if (not ((c) is digit)) then {
@@ -122,9 +133,12 @@ while (again) do {
 				set (at start of literal) to (false).
 			}).
 		}.
-		write tree (tree).
 	} else (if (c) then {
 		write line (c).
 		write line "unexpected char".
 	} else (set (again) to (false)))).
+	if (tree) then {
+		write tree (tree).
+		set (tree) to (false).
+	} else (false).
 }.
