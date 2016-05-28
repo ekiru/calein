@@ -191,6 +191,7 @@ define procedure (try parse action after (first child)) to do {
 			else {
 				set (children) to (((length (literal)), (child)), (children)).
 				if (paren) then {
+					set (c) to (get character).
 					if (not ((c) is equal to (close paren)))
 					then (error "expected close paren")
 					else (false).
@@ -309,6 +310,11 @@ define procedure (parse (at start of expression)) to do {
 	tree.
 }.
 
-define variable (tree) with initial value (parse (true)).
-if (tree) then (write tree (tree) with indent #0)
-	else (write line "no expression").
+define variable (continue) with initial value (true).
+define variable (tree) with initial value (false).
+
+while (continue) do {
+	set (tree) to (parse (true)).
+	if (tree) then (write tree (tree) with indent #0)
+		else (set (continue) to (false)).
+}.
