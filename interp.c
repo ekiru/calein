@@ -183,41 +183,41 @@ static struct value *primitive_not(const struct action *action) {
 	return res;
 }
 
-static struct value *value_is_equal_to(struct value *x, struct value *y) {
-	struct value *res = calloc(1, sizeof *res);
-	if (res) {
-		res->kind = value_kind_boolean;
-		if (x->kind == y->kind) {
-			switch (x->kind) {
-			case value_kind_boolean:
-				res->u.boolean = x->u.boolean = y->u.boolean;
-				break;
-			case value_kind_string:
-				res->u.boolean = string_equals(&x->u.string, &y->u.string);
-				break;
-			case value_kind_number:
-				res->u.boolean = x->u.number == y->u.number;
-				break;
-			case value_kind_pair:
-				res->u.boolean = value_is_equal_to(x->u.pair[0], y->u.pair[0])
-					&& value_is_equal_to(x->u.pair[1], y->u.pair[1]);
-				break;
-			default:
-				log_error("Unrecognized kind %d in (x) is equal to (y).", x->kind);
-				res->u.boolean = false;
-				break;
-			}
-		} else {
-			res->u.boolean = false;
+static bool value_is_equal_to(struct value *x, struct value *y) {
+	if (x->kind == y->kind) {
+		switch (x->kind) {
+		case value_kind_boolean:
+			return x->u.boolean = y->u.boolean;
+			break;
+		case value_kind_string:
+			return string_equals(&x->u.string, &y->u.string);
+			break;
+		case value_kind_number:
+			return x->u.number == y->u.number;
+			break;
+		case value_kind_pair:
+			return value_is_equal_to(x->u.pair[0], y->u.pair[0])
+				&& value_is_equal_to(x->u.pair[1], y->u.pair[1]);
+			break;
+		default:
+			log_error("Unrecognized kind %d in (x) is equal to (y).", x->kind);
+			return false;
+			break;
 		}
+	} else {
+		return false;
 	}
-	return res;
 }
 
 static struct value *primitive_is_equal_to(const struct action *action) {
 	struct value *x = eval(action->args[0]);
 	struct value *y = eval(action->args[1]);
-	return value_is_equal_to(x, y);
+	struct value *res = calloc(1, sizeof *res);
+	if (res) {
+		res->kind = value_kind_boolean;
+		res->u.boolean = value_is_equal_to(x, y);
+	}
+	return res;
 }
 
 static struct value *primitive_if_then_else(const struct action *action) {
