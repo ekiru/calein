@@ -1,0 +1,130 @@
+define variable (c) with initial value #0.
+
+define variable (true) with initial value (#0 is equal to #0).
+define variable (false) with initial value (not (true)).
+define variable (new line) with initial value #10.
+define variable (quote) with initial value #34.
+define variable (number sigil) with initial value #35.
+define variable (character 0) with initial value #48.
+define variable (backslash) with initial value #92.
+define variable (character n) with initial value #110.
+
+define variable (again) with initial value (true).
+
+define variable (literal) with initial value #0.
+define variable (in escape) with initial value (false).
+define variable (again in literal) with initial value (true).
+define variable (at start of literal) with initial value (false).
+
+define procedure ((a) or (b))
+	to do (if (a) then (a) else (b)).
+define procedure ((a) and (b))
+	to do (if (a) then (b) else (a)).
+
+define procedure ((x) is between (a) and (b)) to do {
+	define variable (found) with initial value (false).
+	while (not ((a) is equal to (b))) do {
+		if ((a) is equal to (x))
+			then (set (found) to (true))
+			else (false).
+		set (a) to ((a) + #1).
+	}.
+	found.
+}.
+
+define procedure ((c) is digit) to do 
+	((c) is between #48 and #58).
+
+define variable (error occurred) with initial value (false).
+
+define procedure (error (msg)) to do {
+	write "Parse error: ".
+	write line "unterminated string literal".
+	set (again in literal) to (false).
+	set (again) to (false).
+	set (error occurred) to (true).
+}.
+
+define variable (literal kind) with initial value "literal kind".
+define variable (number kind) with initial value "number kind".
+
+define procedure (make literal (val))
+	to do ((literal kind), (val)).
+define procedure ((p) is a literal)
+	to do ((first (p)) is equal to (literal kind)).
+define procedure (value of literal (lit))
+	to do (second (lit)).
+define procedure (make number (val))
+	to do ((number kind), (val)).
+define procedure ((p) is a number)
+	to do ((first (p)) is equal to (number kind)).
+define procedure (value of number (num))
+	to do (second (num)).
+
+
+define variable (tree) with initial value ((false), (false)).
+
+define procedure (write tree (tree))
+	to do {
+		if ((tree) is a literal)
+		then {
+			write "String: ".
+			write line (value of literal (tree)).
+		} else (if ((tree) is a number)	then {
+				write "Number: ".
+				write line (value of number (tree)).
+		} else {
+			error "unrecognized kind of tree".
+		}).
+	}.
+
+while (again) do {
+	set (c) to (read character).
+	if ((c) is equal to (quote)) then {
+		set (literal) to "".
+		set (again in literal) to (true).
+		set (in escape) to (false).
+		while (again in literal) do {
+			set (c) to (read character).
+			if (not (c))
+				then (error "unterminated string literal")
+			else (if (in escape)
+				then {if (((c) is equal to (backslash)) or ((c) is equal to (quote)))
+					then (append character (c) to (literal))
+				else (if ((c) is equal to (character n))
+					then (append character (new line) to (literal))
+				else (error "undefined escape sequence")).
+				set (in escape) to (false).
+			}
+			else (if ((c) is equal to (backslash))
+				then (set (in escape) to (true))
+			else (if ((c) is equal to (quote))
+				then {
+				set (again in literal) to (false).
+				set (tree) to (make literal (literal)).
+			}
+			else (append character (c) to (literal))))).
+		}.
+		write tree (tree).
+	} else (if ((c) is equal to (number sigil)) then {
+		set (again in literal) to (true).
+		set (literal) to #0.
+		set (at start of literal) to (true).
+		while (again in literal) do {
+			set (c) to (read character).
+			if ((at start of literal) and (not (c))) then
+				(error "Unexpected EOF at beginning of number")
+			else (if (not ((c) is digit)) then {
+				set (tree) to (make number (literal)).
+				set (again in literal) to (false).
+			} else {
+				set (literal) to (((literal) * #10) + ((c) - (character 0))).
+				set (at start of literal) to (false).
+			}).
+		}.
+		write tree (tree).
+	} else (if (c) then {
+		write line (c).
+		write line "unexpected char".
+	} else (set (again) to (false)))).
+}.
