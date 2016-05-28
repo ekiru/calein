@@ -193,15 +193,19 @@ define procedure (parse) to do {
 				} else {
 					unget character (c).
 					define variable (child) with initial value (parse).
-					set (children) to ((child), (children)).
+					if (child)
+					then (set (children) to ((child), (children)))
+					else (false).
 				}).
 			}.
 		} else (if ((c) is whitespace)
 			then (set (again) to (true))
+		else (if ((c) is equal to (close brace))
+			then (unget character (c))
 		else (if (c) then {
 			write line (c).
 			write line "unexpected char".
-		} else (false))))).
+		} else (false)))))).
 	}.
 	tree.
 }.
