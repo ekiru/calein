@@ -25,6 +25,16 @@ struct value *value_make_string(const struct string *s) {
 	return v;
 }
 
+struct value *value_make_string_from_c_string(const char *s) {
+	struct value *v = allocate(value_kind_string);
+	string_init_empty(&v->u.string);
+	if (!string_add_c_string(&v->u.string, s)) {
+		log_error("Failed to create string.");
+		exit(1);
+	}
+	return v;
+}
+
 struct string *value_string_value(struct value *v) {
 	if (!v || v->kind != value_kind_string) {
 		log_error("Attempt to use non-string as string.");

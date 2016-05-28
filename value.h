@@ -24,6 +24,7 @@ struct value {
 };
 
 struct value *value_make_string(const struct string *s);
+struct value *value_make_string_from_c_string(const char *s);
 struct string *value_string_value(struct value *v);
 
 struct value *value_make_boolean(bool b);

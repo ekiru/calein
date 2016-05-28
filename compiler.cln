@@ -434,7 +434,9 @@ define procedure (emit (ir) to (out) in (context)) to do {
 			then (append string ";" to (out))
 			else (false).
 	} else (if ((ir) is an ir literal) then {
+		append string "value_make_string_from_c_string(" to (out).
 		append string (value of ir literal (ir)) to (out).
+		append string ")" to (out).
 		if ((context) is equal to (statement context))
 			then (append string ";" to (out))
 			else (false).
