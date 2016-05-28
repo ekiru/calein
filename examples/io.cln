@@ -1,0 +1,15 @@
+write line "Hi, what's your name?".
+
+define global variable (name)
+	with initial value "".
+
+define global variable (c)
+	with initial value (read character).
+
+while (c) do {
+	append character (c) to (name).
+	set (c) to (read character).
+}.
+
+write "Nice to meet you, ".
+write line (name).

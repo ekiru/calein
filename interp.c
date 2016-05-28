@@ -98,6 +98,36 @@ static struct value *primitive_write_line(const struct action *action) {
 	return 0;
 }
 
+static struct value *primitive_read_character(const struct action *action) {
+	struct value *res = calloc(1, sizeof *res);
+	if (!res) {
+		log_error("Unable to allocate memory.");
+		return res;
+	}
+	int c = getchar();
+	if (c == EOF) {
+		res->kind = value_kind_boolean;
+		res->u.boolean = false;
+	} else {
+		res->kind = value_kind_number;
+		res->u.number = (int64_t) c;
+	}
+	return res;
+}
+
+static struct value *primitive_append_character_to(const struct action *action) {
+	struct value *c = eval(action->args[0]);
+	struct value *s = eval(action->args[1]);
+	if (!c || c->kind != value_kind_number || !s || s->kind != value_kind_string) {
+		log_error("Invalid types for append character () to ().");
+		return 0;
+	}
+	if (!string_add_character(&s->u.string, (char) c->u.number)) {
+		log_error ("Error appending to string.");
+	}
+	return 0;
+}
+
 static struct value *primitive_not(const struct action *action) {
 	struct value *res = calloc(1, sizeof *res);
 	struct value *v;
@@ -339,6 +369,8 @@ int main() {
 	environment = 0;
 	struct definition write_line_definition;
 	struct definition write_definition;
+	struct definition read_character_definition;
+	struct definition append_character_to_definition;
 	struct definition add_definition;
 	struct definition subtract_definition;
 	struct definition multiply_definition;
@@ -353,6 +385,8 @@ int main() {
 	struct definition set_definition;
 	if (!define_primitive(&write_line_definition, "write line (msg)", primitive_write_line)
 	    || !define_primitive(&write_definition, "write (msg)", primitive_write)
+	    || !define_primitive(&read_character_definition, "read character", primitive_read_character)
+	    || !define_primitive(&append_character_to_definition, "append character (c) to (s)", primitive_append_character_to)
 	    || !define_primitive(&add_definition, "(x) + (y)", primitive_add)
 	    || !define_primitive(&subtract_definition, "(x) - (y)", primitive_subtract)
 	    || !define_primitive(&multiply_definition, "(x) * (y)", primitive_multiply)
