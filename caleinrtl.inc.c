@@ -3,6 +3,18 @@
 #include "str.h"
 #include "value.h"
 
+static struct value *calein__COMMA_ARG_ARG(struct value *x, struct value *y) {
+	return value_make_pair(x, y);
+}
+
+static struct value *calein_first_ARG(struct value *p) {
+	return value_pair_first(p);
+}
+
+static struct value *calein_second_ARG(struct value *p) {
+	return value_pair_second(p);
+}
+
 static struct value *calein_write_ARG(struct value *s) {
 	value_write(s);
 	return 0;
