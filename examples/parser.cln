@@ -173,6 +173,11 @@ define procedure (try parse action after (first child)) to do {
 			or ((c) is equal to (close paren))
 			or ((c) is equal to (close brace))) then {
 			set (again in action) to (false).
+			if (children)
+				then (if ((first (first (children))) is equal to (length (literal)))
+					then (trim right (literal))
+					else (false))
+				else (trim right (literal)).
 			if (((c) is equal to (close paren))
 				or ((c) is equal to (close brace)))
 			then (unget character (c))

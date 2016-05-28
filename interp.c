@@ -165,6 +165,16 @@ static struct value *primitive_append_character_to(const struct action *action) 
 	return 0;
 }
 
+static struct value *primitive_trim_right(const struct action *action) {
+	struct value *s = eval(action->args[0]);
+	if (!s || s->kind != value_kind_string) {
+		log_error("Cannot trim non-string.");
+		return 0;
+	}
+	string_trim_right(&s->u.string);
+	return 0;
+}
+
 static struct value *primitive_length(const struct action *action) {
 	struct value *s = eval(action->args[0]);
 	if (!s || s->kind != value_kind_string) {
@@ -449,6 +459,7 @@ int main(int argc, char **argv) {
 	struct definition write_definition;
 	struct definition read_character_definition;
 	struct definition append_character_to_definition;
+	struct definition trim_right_definition;
 	struct definition length_definition;
 	struct definition character_at_of_definition;
 	struct definition add_definition;
@@ -470,6 +481,7 @@ int main(int argc, char **argv) {
 	    || !define_primitive(&write_definition, "write (msg)", primitive_write)
 	    || !define_primitive(&read_character_definition, "read character", primitive_read_character)
 	    || !define_primitive(&append_character_to_definition, "append character (c) to (s)", primitive_append_character_to)
+	    || !define_primitive(&trim_right_definition, "trim right (s)", primitive_trim_right)
 	    || !define_primitive(&length_definition, "length (s)", primitive_length)
 	    || !define_primitive(&character_at_of_definition, "character at (index) of (string)", primitive_character_at_of)
 	    || !define_primitive(&add_definition, "(x) + (y)", primitive_add)
