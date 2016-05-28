@@ -2,17 +2,26 @@ define variable (c) with initial value #0.
 
 define variable (true) with initial value (#0 is equal to #0).
 define variable (false) with initial value (not (true)).
+define variable (tab) with initial value #9.
+define variable (tab string) with initial value "".
+append character (tab) to (tab string).
 define variable (new line) with initial value #10.
+define variable (space) with initial value #32.
 define variable (quote) with initial value #34.
 define variable (number sigil) with initial value #35.
 define variable (character 0) with initial value #48.
 define variable (backslash) with initial value #92.
 define variable (character n) with initial value #110.
+define variable (open brace) with initial value #123.
+define variable (close brace) with initial value #125.
 
 define procedure ((a) or (b))
 	to do (if (a) then (a) else (b)).
 define procedure ((a) and (b))
 	to do (if (a) then (b) else (a)).
+
+define procedure ((a) or (b) or (c))
+	to do (((a) or (b)) or (c)).
 
 define procedure ((x) is between (a) and (b)) to do {
 	define variable (found) with initial value (false).
@@ -27,6 +36,10 @@ define procedure ((x) is between (a) and (b)) to do {
 
 define procedure ((c) is digit) to do 
 	((c) is between #48 and #58).
+define procedure ((c) is whitespace) to do
+	(((c) is equal to (space)) or
+	 ((c) is equal to (tab)) or
+	 ((c) is equal to (new line))).
 
 
 define variable (ungotten character) with initial value (false).
@@ -40,8 +53,18 @@ define procedure (get character) to do {
 define procedure (unget character (c))
 	to do (set (ungotten character) to (c)).
 
+define procedure (reverse list (list)) to do {
+	define variable (acc) with initial value (false).
+	while (list) do {
+		set (acc) to ((first (list)), (acc)).
+		set (list) to (second (list)).
+	}.
+	acc.
+}.
+
 define variable (literal kind) with initial value "literal kind".
 define variable (number kind) with initial value "number kind".
+define variable (sequence kind) with initial value "sequence kind".
 
 define procedure (make literal (val))
 	to do ((literal kind), (val)).
@@ -55,20 +78,44 @@ define procedure ((p) is a number)
 	to do ((first (p)) is equal to (number kind)).
 define procedure (value of number (num))
 	to do (second (num)).
+define procedure (make sequence (list))
+	to do ((sequence kind), (list)).
+define procedure ((p) is a sequence)
+	to do ((first (p)) is equal to (sequence kind)).
+define procedure (items of sequence (seq))
+	to do (second (seq)).
 
-
-define procedure (write tree (tree))
+define procedure (indent (n) times) to do {
+	while (not ((n) is equal to #0)) do {
+		write (tab string).
+		set (n) to ((n) - #1).
+	}.
+}.
+define procedure (write tree (tree) with indent (indent))
 	to do {
 		if ((tree) is a literal)
 		then {
+			indent (indent) times.
 			write "String: ".
 			write line (value of literal (tree)).
 		} else (if ((tree) is a number)	then {
-				write "Number: ".
-				write line (value of number (tree)).
+			indent (indent) times.
+			write "Number: ".
+			write line (value of number (tree)).
+		} else (if ((tree) is a sequence) then {
+			indent (indent) times.
+			write line "Sequence:".
+			define variable (items)
+				with initial value (items of sequence (tree)).
+			while (items) do {
+				write tree (first (items)) with indent ((indent) + #1).
+				set (items) to (second (items)).
+			}.
 		} else {
-			write line "unrecognized kind of tree".
-		}).
+			indent (indent) times.
+			write "unrecognized kind of tree: ".
+			write line (first (tree)).
+		})).
 	}.
 
 define procedure (parse) to do {
@@ -76,17 +123,21 @@ define procedure (parse) to do {
 	define variable (literal) with initial value #0.
 	define variable (in escape) with initial value (false).
 	define variable (again in literal) with initial value (true).
+	define variable (again in sequence) with initial value (true).
 	define variable (at start of literal) with initial value (false).
+	define variable (children) with initial value (false).
 
 	define procedure (error (msg)) to do {
 		write "Parse error: ".
 		write line "unterminated string literal".
 		set (again in literal) to (false).
+		set (again in sequence) to (false).
 		set (again) to (false).
 	}.
 
 	define variable (tree) with initial value (false).
 	while (again) do {
+		set (again) to (false).
 		set (c) to (get character).
 		if ((c) is equal to (quote)) then {
 			set (literal) to "".
@@ -130,17 +181,30 @@ define procedure (parse) to do {
 					set (at start of literal) to (false).
 				}).
 			}.
-		} else (if (c) then {
+		} else (if ((c) is equal to (open brace)) then {
+			set (children) to (false).
+			set (again in sequence) to (true).
+			while (again in sequence) do {
+				set (c) to (get character).
+				if (not (c)) then (error "unexpected EOF in sequence")
+				else (if ((c) is equal to (close brace)) then {
+					set (again in sequence) to (false).
+					set (tree) to (make sequence (reverse list (children))).
+				} else {
+					unget character (c).
+					define variable (child) with initial value (parse).
+					set (children) to ((child), (children)).
+				}).
+			}.
+		} else (if ((c) is whitespace)
+			then (set (again) to (true))
+		else (if (c) then {
 			write line (c).
 			write line "unexpected char".
-		} else (set (again) to (false)))).
-		if (tree) then {
-			write tree (tree).
-			set (tree) to (false).
-		} else (false).
+		} else (false))))).
 	}.
 	tree.
 }.
 
 define variable (tree) with initial value (parse).
-if (tree) then (write tree (tree)) else (false).
+if (tree) then (write tree (tree) with indent #0) else (false).
