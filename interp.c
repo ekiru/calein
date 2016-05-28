@@ -173,13 +173,13 @@ static struct value *primitive_not(const struct action *action) {
 		return res;
 	}
 	v = eval(action->args[0]);
-	if (!v || v->kind != value_kind_boolean) {
+	if (!v) {
 		log_error("not requires a boolean");
 		free(res);
 		return 0;
 	}
 	res->kind = value_kind_boolean;
-	res->u.boolean = !v->u.boolean;
+	res->u.boolean = v->kind == value_kind_boolean ? !v->u.boolean : false;
 	return res;
 }
 
