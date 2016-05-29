@@ -1,12 +1,28 @@
-Calein is a toy programming language I'm working on, and an interpreter for it.
-The interpreter is very hacky, and I'm not going to try very hard to fix some
-of that hackiness because, once the interpreter implements a sufficiently
-expressive language, I plan to do the write-a-compiler-for-the-language-in-
-itself-and-use-the-interpreter-to-run-it-on-itself thing.
+Calein is a toy programming language I'm working on, an interpreter for it
+written in C, and a compiler from Calein to C written in Calein.  The
+interpreter is very hacky, and I didn't try very hard to fix some of that
+hackiness because as soon as the interpreter was featureful enough to write a
+self-hosted compiler, I did that. The compiler's somewhat hacky itself, but I
+do plan to improve that.
+
+Now that the compiler's capable of compiling itself, I probably won't work on
+the interpreter anymore. I may end up writing a new interpreter in Calein,
+though; REPLs are convenient, and I will probably eventually implement some
+features involving compile-time code execution which may benefit from an
+interpreter. That's probably a while away, though.
 
 There are a few examples in the examples directory, all of which work with the
 exception of examples/data.cln . That one has some very tentative things that
-might not match the ultimate design.
+might not match the ultimate design. There's also compiler.cln, which is the
+compiler. It's not really the best code right now; it was the product of trying
+to get the self-hosting compiler working from a fairly minimal C interpreter,
+so I did a lot of stuff in kludgy ways to avoid having to put more stuff in the
+interpreter. This will be gradually cleaned up over time, but that hasn't
+happened yet.
+
+The run time library is found in caleinrtl.inc.c, str.c, err.c, and value.c.
+I'm not sure if I want to move Calein in a direction where this can be
+rewritten in Calein.  We'll see.
 
 This code doesn't have a license yet. It probably will at some point, though I
 don't particularly expect anyone who isn't me to desire to use it.
