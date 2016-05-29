@@ -68,7 +68,9 @@ define procedure (string of number (number)) to do {
 		append character (((number) mod #10) + (character 0)) to (s).
 		set (number) to ((number) / #10).
 	}.
-	reverse string (s).
+	if ((s) is equal to "")
+		then "0"
+		else (reverse string (s)).
 }.
 
 define procedure ((c) is digit) to do 
@@ -567,6 +569,13 @@ define procedure (lookup (key) in (alist)) to do {
 define variable (variable list) with initial value (false).
 define variable (function list) with initial value (false).
 
+define procedure (register variable (var) in scope (scope)) to do {
+	define variable (old scope) with initial value (lookup (var) in (variable list)).
+	if (not ((old scope) is equal to (scope)))
+		then (set (variable list) to (((var), (scope)), (variable list)))
+		else (true).
+}.
+
 define procedure ((context) is an evaluation)
 	to do (not (((context) is equal to (definition context))
 		or ((context) is equal to (initializer context))
@@ -595,9 +604,25 @@ define procedure (emit locals struct tag for (proc name) to (out)) to do {
 	append string "_local_vars" to (out).
 }.
 
-define procedure (emit locals struct for procedure (ir) named (proc name) to (out)) to do {
+define procedure (emit locals struct for procedure (ir) named (proc name) to (out) in (scope)) to do {
 	emit locals struct tag for (proc name) to (out).
 	append string " {\n" to (out).
+	if (not ((scope) is equal to (global scope))) then {
+		emit locals struct declaration for (scope) to (out) in (proc name).
+		append string ";\n" to (out).
+	} else (false).
+	define variable (args) with initial value (arguments of action (name of ir procedure (ir))).
+	define variable (ident) with initial value (false).
+	while (args) do {
+		set (ident) to (C ident for action (second (first (args)))).
+		if (not ((lookup (ident) in (variable list)) is equal to (proc name))) then {
+			register variable (ident) in scope (proc name).
+			append string "struct value *" to (out).
+			append string (ident) to (out).
+			append string ";\n" to (out).
+		} else (false).
+		set (args) to (second (args)).
+	}.
 	emit (body of ir procedure (ir)) to (out) in (nested definition context) with scope (proc name).
 	append string "};\n" to (out).
 }.
@@ -613,18 +638,30 @@ define procedure (emit locals struct declaration for (proc name) to (out) in (sc
 	}.
 }.
 
+define variable (continue) with initial value (true).
+
+define procedure (compile error (msg)) to do {
+	write "compile error: ".
+	write line (msg).
+	set (continue) to (false).
+}.
+
 define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
+	define variable (args) with initial value (false).
+	define variable (var scope) with initial value (false).
+	define variable (sep) with initial value (false).
+	define variable (name) with initial value (false).
 	if ((ir) is an ir call) then {
 		if ((context) is an evaluation) then {
-			define variable (args) with initial value (arguments of ir call (ir)).
-			define variable (name) with initial value (name of ir call (ir)).
-			define variable (var scope) with initial value (lookup (name) in (variable list)).
+			set (args) to (arguments of ir call (ir)).
+			set (name) to (name of ir call (ir)).
+			set (var scope) to (lookup (name) in (variable list)).
 			if ((args) or (not (var scope))) then {
 				define variable (function info) with initial value (lookup (name) in (function list)).
 				if (function info) then (set (name) to (first (function info))) else (false).
 				append string (name) to (out).
 				append string "(" to (out).
-				define variable (sep) with initial value "".
+				set (sep) to "".
 				if (function info) then (if (not ((second (function info)) is equal to (global scope))) then {
 					append string "&local_vars" to (out).
 					set (sep) to ",".
@@ -641,6 +678,9 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 					else (false).
 			} else {
 				emit reference to variable (name) from scope (var scope) in scope (scope) to (out).
+				if ((context) is equal to (statement context))
+					then (append string ";\n" to (out))
+					else (false).
 			}.
 		} else (false).
 	} else (if ((ir) is an ir procedure) then {
@@ -650,22 +690,22 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 		set (proc name) to (adjusted proc name).
 		define variable (old function list) with initial value (function list).
 		if (((context) is equal to (definition context)) or ((context) is equal to (procedure definition context))) then {
-			emit locals struct for procedure (ir) named (proc name) to (out).
+			emit locals struct for procedure (ir) named (proc name) to (out) in (scope).
 			emit (body of ir procedure (ir)) to (out) in (procedure definition context) with scope (proc name).
 			append string "struct value *" to (out).
 			append string (proc name) to (out).
 			append string "(" to (out).
 			define variable (old variable list) with initial value (variable list).
-			define variable (args) with initial value (arguments of action (name of ir procedure (ir))).
-			define variable (sep) with initial value "".
+			set (args) to (arguments of action (name of ir procedure (ir))).
+			set (sep) to "".
 			define variable (ident) with initial value (false).
 			if ((args) or (not ((scope) is equal to (global scope)))) then {
 				if (not ((scope) is equal to (global scope))) then {
 					emit locals struct declaration for (scope) to (out) in (proc name).
+					set (sep) to ", ".
 				} else (false).
 				while (args) do {
 					set (ident) to (C ident for action (second (first (args)))).
-					set (variable list) to (((ident), (proc name)), (variable list)).
 					append string (sep) to (out).
 					append string "struct value *" to (out).
 					append string (ident) to (out).
@@ -694,7 +734,7 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 			set (expected sep) to ", ".
 			append string "(" to (out).
 		} else (false).
-		define variable (sep) with initial value (expected sep).
+		set (sep) to (expected sep).
 		set (old length) to (length (out)).
 		while (items) do {
 			if (not ((old length) is equal to (length (out)))) 
@@ -710,7 +750,7 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 	} else (if ((ir) is an ir if) then {
 		if ((context) is equal to (expression context)) then {
 			append string "(value_boolean_is_true(" to (out).
-			emit (condition of ir if (ir)) to (out) in (context) with scope (scope).
+			emit (condition of ir if (ir)) to (out) in (expression context) with scope (scope).
 			append string ") ? (" to (out).
 			emit (then of ir if (ir)) to (out) in (context) with scope (scope).
 			append string ") : (" to (out).
@@ -718,30 +758,37 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 			append string "))" to (out).
 		} else (if ((context) is equal to (statement context)) then {
 			append string "if (value_boolean_is_true(" to (out).
-			emit (condition of ir if (ir)) to (out) in (context) with scope (scope).
+			emit (condition of ir if (ir)) to (out) in (expression context) with scope (scope).
 			append string ")) {\n" to (out).
-			emit (then of ir if (ir)) to (out) in (context) with scope (scope).
+			emit (then of ir if (ir)) to (out) in (statement context) with scope (scope).
 			append string "\n} else {\n" to (out).
-			emit (else of ir if (ir)) to (out) in (context) with scope (scope).
+			emit (else of ir if (ir)) to (out) in (statement context) with scope (scope).
 			append string "}" to (out).
-		} else (false)).
+		} else {
+			emit (condition of ir if (ir)) to (out) in (context) with scope (scope).
+			emit (then of ir if (ir)) to (out) in (context) with scope (scope).
+			emit (else of ir if (ir)) to (out) in (context) with scope (scope).
+		}).
 	} else (if ((ir) is an ir while) then {
 		if ((context) is equal to (statement context)) then {
 			append string "while (value_boolean_is_true(" to (out).
-			emit (condition of ir while (ir)) to (out) in (context) with scope (scope).
+			emit (condition of ir while (ir)) to (out) in (expression context) with scope (scope).
 			append string ")) {\n" to (out).
-			emit (body of ir while (ir)) to (out) in (context) with scope (scope).
+			emit (body of ir while (ir)) to (out) in (statement context) with scope (scope).
 			append string "\n}\n" to (out).
 		} else (if ((context) is equal to (expression context)) then {
 			append string "({ " to (out).
 			emit (ir) to (out) in (statement context) with scope (scope).
 			append string " 0; })" to (out).
-		} else (false)).
+		} else {
+			emit (condition of ir while (ir)) to (out) in (context) with scope (scope).
+			emit (body of ir while (ir)) to (out) in (context) with scope (scope).
+		}).
 	} else (if ((ir) is an ir variable) then {
-		define variable (name) with initial value
+		set (name) to
 			(C ident for action (name of ir variable (ir))).
 		if (not ((lookup (name) in (variable list)) is equal to (scope)))
-			then (set (variable list) to (((name), (scope)), (variable list)))
+			then (register variable (name) in scope (scope))
 			else (false).
 		if (((context) is equal to (definition context)) or ((context) is equal to (nested definition context))) then {
 			append string "struct value *" to (out).
@@ -766,8 +813,8 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 			append string " = 0;\n" to (out).
 		} else (false)))).
 	} else (if ((ir) is an ir assignment) then {
-		define variable (name) with initial value (C ident for action (name of ir assignment (ir))).
-		define variable (var scope) with initial value (lookup (name) in (variable list)).
+		set (name) to (C ident for action (name of ir assignment (ir))).
+		set (var scope) to (lookup (name) in (variable list)).
 		if (var scope) then {
 			if ((context) is an evaluation) then {
 				append string "(" to (out).
@@ -784,6 +831,8 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 			write "error: var ".
 			write (name).
 			write " not in scope in ".
+			write (context).
+			write " in ".
 			write line (scope).
 		}.
 	} else (if ((ir) is an ir literal) then {
@@ -854,15 +903,8 @@ define procedure (compile (tree)) to do {
 	} else (compile error "unsupported kind of tree")))).
 }.
 
-define variable (continue) with initial value (true).
 define variable (tree) with initial value (false).
 define variable (ir) with initial value (false).
-
-define procedure (compile error (msg)) to do {
-	write "compile error: ".
-	write line (msg).
-	set (continue) to (false).
-}.
 
 while (continue) do {
 	set (tree) to (parse (true)).

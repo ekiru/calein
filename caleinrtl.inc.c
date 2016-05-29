@@ -16,6 +16,10 @@ static struct value *calein_second_ARG(struct value *p) {
 	return value_pair_second(p);
 }
 
+static struct value *calein_not_ARG(struct value *b) {
+	return value_make_boolean(!value_boolean_is_true(b));
+}
+
 static struct value *calein__SPACE_ARGis_SPACEequal_SPACEto_ARG(struct value *x, struct value *y) {
 	return value_make_boolean(value_is_equal_to(x, y));
 }
@@ -26,6 +30,20 @@ static struct value *calein_append_SPACEcharacter_SPACE_SPACE_ARGto_ARG(struct v
 		exit(1);
 	}
 	return 0;
+}
+
+static struct value *calein_length_ARG(struct value *s) {
+	return value_make_number(value_string_value(s)->length);
+}
+
+static struct value *calein_character_SPACEat_SPACE_SPACE_ARGof_ARG(struct value *iv, struct value *sv) {
+	int64_t i = value_number_value(iv);
+	struct string *s = value_string_value(sv);
+	if (i < 0 || i >= s->length) {
+		log_error("Index out of bounds for string");
+		return 0;
+	}
+	return value_make_number(s->data[i]);
 }
 
 static struct value *calein_write_ARG(struct value *s) {
