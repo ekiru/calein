@@ -116,3 +116,30 @@ void value_write(struct value *v) {
 		log_error("Unrecognized value kind %d", v->kind);
 	}
 }
+
+bool value_is_equal_to(struct value *x, struct value *y) {
+	if (x->kind == y->kind) {
+		switch (x->kind) {
+		case value_kind_boolean:
+			return x->u.boolean == y->u.boolean;
+			break;
+		case value_kind_string:
+			return string_equals(&x->u.string, &y->u.string);
+			break;
+		case value_kind_number:
+			return x->u.number == y->u.number;
+			break;
+		case value_kind_pair:
+			return value_is_equal_to(x->u.pair[0], y->u.pair[0])
+				&& value_is_equal_to(x->u.pair[1], y->u.pair[1]);
+			break;
+		default:
+			log_error("Unrecognized kind %d in (x) is equal to (y).", x->kind);
+			return false;
+			break;
+		}
+	} else {
+		return false;
+	}
+}
+

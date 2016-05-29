@@ -15,6 +15,10 @@ static struct value *calein_second_ARG(struct value *p) {
 	return value_pair_second(p);
 }
 
+static struct value *calein__SPACE_ARGis_SPACEequal_SPACEto_ARG(struct value *x, struct value *y) {
+	return value_make_boolean(value_is_equal_to(x, y));
+}
+
 static struct value *calein_write_ARG(struct value *s) {
 	value_write(s);
 	return 0;

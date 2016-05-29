@@ -39,4 +39,6 @@ struct value *value_pair_second(struct value *pair);
 
 void value_write(struct value *v);
 
+bool value_is_equal_to(struct value *x, struct value *y);
+
 #endif
