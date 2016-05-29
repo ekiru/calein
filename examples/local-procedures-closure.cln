@@ -1,0 +1,8 @@
+define procedure (foo) to do {
+	define variable (x) with initial value #5.
+	define procedure (bar) to do (set (x) to ((x) + #1)).
+	bar.
+	x.
+}.
+
+write line (foo).

@@ -1,0 +1,10 @@
+define variable (x) with initial value #1.
+
+define procedure (print x) to do {
+	define variable (x) with initial value #2.
+	write line (x).
+}.
+
+write line (x).
+print x.
+write line (x).

@@ -1,0 +1,958 @@
+define variable (true) with initial value (#0 is equal to #0).
+define variable (false) with initial value (not (true)).
+define variable (tab) with initial value #9.
+define variable (tab string) with initial value "".
+append character (tab) to (tab string).
+define variable (new line) with initial value #10.
+define variable (space) with initial value #32.
+define variable (quote) with initial value #34.
+define variable (number sigil) with initial value #35.
+define variable (open paren) with initial value #40.
+define variable (close paren) with initial value #41.
+define variable (star) with initial value #42.
+define variable (plus) with initial value #43.
+define variable (comma) with initial value #44.
+define variable (minus) with initial value #45.
+define variable (dot) with initial value #46.
+define variable (slash) with initial value #47.
+define variable (character 0) with initial value #48.
+define variable (backslash) with initial value #92.
+define variable (underscore) with initial value #95.
+define variable (character n) with initial value #110.
+define variable (open brace) with initial value #123.
+define variable (close brace) with initial value #125.
+
+define procedure ((list) at (index)) to do {
+	while (not ((index) is equal to #0)) do {
+		set (list) to (second (list)).
+		set (index) to ((index) - #1).
+	}.
+	first (list).
+}.
+
+define procedure ((a) or (b))
+	to do (if (a) then (a) else (b)).
+define procedure ((a) and (b))
+	to do (if (a) then (b) else (a)).
+
+define procedure ((a) or (b) or (c))
+	to do (((a) or (b)) or (c)).
+define procedure ((a) or (b) or (c) or (d))
+	to do (((a) or (b)) or ((c) or (d))).
+
+define procedure ((x) is between (a) and (b)) to do {
+	define variable (found) with initial value (false).
+	while (not ((a) is equal to (b))) do {
+		if ((a) is equal to (x))
+			then (set (found) to (true))
+			else (false).
+		set (a) to ((a) + #1).
+	}.
+	found.
+}.
+
+define procedure (reverse string (s)) to do {
+	define variable (rev) with initial value "".
+	define variable (i) with initial value #0.
+	while (not ((i) is equal to (length (s)))) do {
+		append character (character at (((length (s)) - (i)) - #1) of (s))
+			to (rev).
+		set (i) to ((i) + #1).
+	}.
+	rev.
+}.
+
+define procedure (string of number (number)) to do {
+	define variable (s) with initial value "".
+	while (not ((number) is equal to #0)) do {
+		append character (((number) mod #10) + (character 0)) to (s).
+		set (number) to ((number) / #10).
+	}.
+	if ((s) is equal to "")
+		then "0"
+		else (reverse string (s)).
+}.
+
+define procedure ((c) is digit) to do 
+	((c) is between #48 and #58).
+define procedure ((c) is whitespace) to do
+	(((c) is equal to (space)) or
+	 ((c) is equal to (tab)) or
+	 ((c) is equal to (new line))).
+
+
+define variable (line number) with initial value #1.
+define variable (column number) with initial value #1.
+
+define variable (ungotten character) with initial value (false).
+define procedure (get character) to do {
+	define variable (tmp) with initial value (false).
+	if (ungotten character) then {
+		set (tmp) to (ungotten character).
+		set (ungotten character) to (false).
+	} else (set (tmp) to (read character)).
+	if ((tmp) is equal to (new line)) then {
+		set (line number) to ((line number) + #1).
+		set (column number) to #1.
+	} else (set (column number) to ((column number) + #1)).
+	tmp.
+}.
+define procedure (unget character (c)) to do {
+	set (ungotten character) to (c).
+	if ((c) is equal to (new line)) then {
+		set (line number) to ((line number) - #1).
+		set (column number) to (#0 - #1).
+	} else (set (column number) to ((column number) - #1)).
+}.
+
+define procedure (reverse list (list)) to do {
+	define variable (acc) with initial value (false).
+	while (list) do {
+		set (acc) to ((first (list)), (acc)).
+		set (list) to (second (list)).
+	}.
+	acc.
+}.
+
+define variable (literal kind) with initial value "literal kind".
+define variable (number kind) with initial value "number kind".
+define variable (sequence kind) with initial value "sequence kind".
+define variable (action kind) with initial value "action kind".
+
+define procedure (make literal (val))
+	to do ((literal kind), (val)).
+define procedure ((p) is a literal)
+	to do ((first (p)) is equal to (literal kind)).
+define procedure (value of literal (lit))
+	to do (second (lit)).
+define procedure (make number (val))
+	to do ((number kind), (val)).
+define procedure ((p) is a number)
+	to do ((first (p)) is equal to (number kind)).
+define procedure (value of number (num))
+	to do (second (num)).
+define procedure (make sequence (list))
+	to do ((sequence kind), (list)).
+define procedure ((p) is a sequence)
+	to do ((first (p)) is equal to (sequence kind)).
+define procedure (items of sequence (seq))
+	to do (second (seq)).
+define procedure (make action (name) with arguments (args))
+	to do ((action kind), ((name), (args))).
+define procedure ((p) is an action)
+	to do ((first (p)) is equal to (action kind)).
+define procedure (name of action (action))
+	to do (first (second (action))).
+define procedure (arguments of action (action))
+	to do (second (second (action))).
+
+define procedure (indent (n) times) to do {
+	while (not ((n) is equal to #0)) do {
+		write (tab string).
+		set (n) to ((n) - #1).
+	}.
+}.
+define procedure (write tree (tree) with indent (indent))
+	to do {
+		if ((tree) is a literal)
+		then {
+			indent (indent) times.
+			write "String: ".
+			write line (value of literal (tree)).
+		} else (if ((tree) is a number)	then {
+			indent (indent) times.
+			write "Number: ".
+			write line (value of number (tree)).
+		} else (if ((tree) is a sequence) then {
+			indent (indent) times.
+			write line "Sequence:".
+			define variable (items)
+				with initial value (items of sequence (tree)).
+			while (items) do {
+				write tree (first (items)) with indent ((indent) + #1).
+				set (items) to (second (items)).
+			}.
+		} else (if ((tree) is an action) then {
+			indent (indent) times.
+			write "Action: ".
+			write line (name of action (tree)).
+			define variable (args)
+				with initial value (arguments of action (tree)).
+			while (args) do {
+				indent ((indent) + #1) times.
+				write "Arg at ".
+				write line (first (first (args))).
+				write tree (second (first (args))) with indent ((indent) + #1).
+				set (args) to (second (args)).
+			}.
+		} else {
+			indent (indent) times.
+			write "unrecognized kind of tree: ".
+			write line (first (tree)).
+		}))).
+	}.
+
+define procedure (last character of (s))
+	to do (character at ((length (s)) - #1) of (s)).
+
+define procedure ((c) is (c 1), (c 2), (c 3), or (c 4))
+	to do (((c) is equal to (c 1)) or ((c) is equal to (c 2)) or
+		((c) is equal to (c 3)) or ((c) is equal to (c 4))).
+
+define procedure (try parse action after (first child)) to do {
+	define variable (tree) with initial value (false).
+	define variable (again in action) with initial value (true).
+	define variable (children) with initial value (false).
+	define variable (literal) with initial value "".
+	define variable (paren) with initial value (false).
+	define variable (child) with initial value (false).
+
+	define variable (c) with initial value #0.
+
+	define procedure (error (msg))
+		to do {
+			write "Parse error at line ".
+			write (line number).
+			write ", column ".
+			write (column number).
+			write ": ".
+			write line (msg).
+			set (again in action) to (false).
+	}.
+	if (first child)
+	then (set (children) to ((#0, (first child)), (children)))
+	else (false).
+	while (again in action) do {
+		set (c) to (get character).
+		if ((not (c)) or ((c) is equal to (dot))
+			or ((c) is equal to (close paren))
+			or ((c) is equal to (close brace))) then {
+			set (again in action) to (false).
+			if (children)
+				then (if ((first (first (children))) is equal to (length (literal)))
+					then (trim right (literal))
+					else (false))
+				else (trim right (literal)).
+			if (((c) is equal to (close paren))
+				or ((c) is equal to (close brace)))
+			then (unget character (c))
+			else (false).
+			if ((length (literal)) is equal to #0)
+			then (set (tree) to (first child))
+			else (set (tree) to
+				(make action (literal)
+				 with arguments (reverse list (children)))).
+			set (again in action) to (false).
+		} else (if ((c) is (quote), (number sigil), (open paren), or (open brace)) then {
+			set (paren) to ((c) is equal to (open paren)).
+			if (not (paren)) then (unget character (c)) else (false).
+			set (child) to (parse (paren)).
+			if (not (child)) then (error "expected argument")
+			else {
+				set (children) to (((length (literal)), (child)), (children)).
+				if (paren) then {
+					set (c) to (get character).
+					if (not ((c) is equal to (close paren)))
+					then (error "expected close paren")
+					else (false).
+				} else (false).
+			}.
+		} else (if ((c) is whitespace) then {
+			if ((length (literal)) is equal to #0)
+			then (append character (space) to (literal))
+			else (if ((last character of (literal)) is equal to (space))
+			then (if (children)
+				then (if ((first (first (children))) is equal to (length (literal)))
+					then (append character (space) to (literal))
+					else (false))
+				else (false))
+			else (append character (space) to (literal))).
+		} else (append character (c) to (literal)))).
+	}.
+	tree.
+}.
+
+define procedure (parse (at start of expression)) to do {
+	define variable (again) with initial value (true).
+	define variable (literal) with initial value #0.
+	define variable (in escape) with initial value (false).
+	define variable (again in literal) with initial value (true).
+	define variable (again in sequence) with initial value (true).
+	define variable (at start of literal) with initial value (false).
+	define variable (children) with initial value (false).
+
+	define procedure (error (msg)) to do {
+		write "Parse error: ".
+		write line (msg).
+		set (again in literal) to (false).
+		set (again in sequence) to (false).
+		set (again) to (false).
+	}.
+	define variable (c) with initial value #0.
+
+	define variable (tree) with initial value (false).
+	while (again) do {
+		set (again) to (false).
+		set (c) to (get character).
+		if ((c) is equal to (quote)) then {
+			set (literal) to "".
+			set (again in literal) to (true).
+			set (in escape) to (false).
+			while (again in literal) do {
+				set (c) to (get character).
+				if (not (c))
+					then (error "unterminated string literal")
+				else (if (in escape)
+					then {if (((c) is equal to (backslash)) or ((c) is equal to (quote)))
+						then (append character (c) to (literal))
+					else (if ((c) is equal to (character n))
+						then (append character (new line) to (literal))
+					else (error "undefined escape sequence")).
+					set (in escape) to (false).
+				}
+				else (if ((c) is equal to (backslash))
+					then (set (in escape) to (true))
+				else (if ((c) is equal to (quote))
+					then {
+					set (again in literal) to (false).
+					set (tree) to (make literal (literal)).
+					if (at start of expression)
+					then (set (tree) to (try parse action after (tree)))
+					else (false).
+				}
+				else (append character (c) to (literal))))).
+			}.
+		} else (if ((c) is equal to (number sigil)) then {
+			set (again in literal) to (true).
+			set (literal) to #0.
+			set (at start of literal) to (true).
+			while (again in literal) do {
+				set (c) to (get character).
+				if ((at start of literal) and (not (c))) then
+					(error "Unexpected EOF at beginning of number")
+				else (if (not ((c) is digit)) then {
+					if (c) then (unget character (c)) else (false).
+					set (again in literal) to (false).
+					set (tree) to (make number (literal)).
+					if (at start of expression)
+					then (set (tree) to (try parse action after (tree)))
+					else (false).
+				} else {
+					set (literal) to (((literal) * #10) + ((c) - (character 0))).
+					set (at start of literal) to (false).
+				}).
+			}.
+		} else (if ((c) is equal to (open brace)) then {
+			set (children) to (false).
+			set (again in sequence) to (true).
+			while (again in sequence) do {
+				set (c) to (get character).
+				if (not (c)) then (error "unexpected EOF in sequence")
+				else (if ((c) is equal to (close brace)) then {
+					set (again in sequence) to (false).
+					set (tree) to (make sequence (reverse list (children))).
+				} else {
+					unget character (c).
+					define variable (child) with initial value (parse (true)).
+					if (child)
+					then (set (children) to ((child), (children)))
+					else (false).
+				}).
+			}.
+		} else (if ((c) is whitespace)
+			then (set (again) to (true))
+		else (if ((c) is equal to (close brace))
+			then (unget character (c))
+		else (if (c) then {
+			unget character (c).
+			set (tree) to (try parse action after (false)).
+		} else (false)))))).
+	}.
+	tree.
+}.
+
+define procedure (append string (t) to (s)) to do {
+	define variable (i) with initial value #0.
+	while (not ((i) is equal to (length (t)))) do {
+		append character (character at (i) of (t)) to (s).
+		set (i) to ((i) + #1).
+	}.
+}.
+
+define procedure (concat (s) and (t)) to do {
+	define variable (u) with initial value "".
+	append string (s) to (u).
+	append string (t) to (u).
+	u.
+}.
+
+define variable (substitutions for C identifiers)
+	with initial value (false).
+define procedure (substitute (str) for (c)) to do {
+	set (substitutions for C identifiers) to 
+		(((c), (str)), (substitutions for C identifiers)).
+}.
+substitute "_SPACE" for (space).
+substitute "_UNDERSCORE" for (underscore).
+substitute "_STAR" for (star).
+substitute "_PLUS" for (plus).
+substitute "_DASH" for (minus).
+substitute "_SLASH" for (slash).
+substitute "_COMMA" for (comma).
+
+define procedure (C ident for action (action)) to do {
+	define variable (name) with initial value (name of action (action)).
+	define variable (args) with initial value (arguments of action (action)).
+	define variable (ident) with initial value "calein_".
+	define variable (i) with initial value #0.
+	define variable (c) with initial value (false).
+	define variable (added) with initial value (false).
+	define variable (substitutions) with initial value (false).
+	while (not ((i) is equal to (length (name)))) do {
+		set (c) to (character at (i) of (name)).
+		set (added) to (false).
+		set (substitutions) to (substitutions for C identifiers).
+		while (substitutions) do {
+			if ((c) is equal to (first (first (substitutions))))
+			then {
+				append string (second (first (substitutions))) to (ident).
+				set (added) to (true).
+				set (substitutions) to (false).
+			} else (set (substitutions) to (second (substitutions))).
+		}.
+		if (not (added)) then (append character (c) to (ident)) else (false).
+		if (args) then (if ((i) is equal to (first (first (args)))) then {
+			append string "_ARG" to (ident).
+			set (args) to (second (args)).
+		} else (false)) else (false).
+		set (i) to ((i) + #1).
+	}.
+	if (args) then (append string "_ARG" to (ident)) else (false).
+	ident.
+}.
+
+define procedure (C string for literal (literal)) to do {
+	define variable (string) with initial value "\"".
+	define variable (i) with initial value #0.
+	define variable (c) with initial value (false).
+	while (not ((i) is equal to (length (literal)))) do {
+		set (c) to (character at (i) of (literal)).
+		if ((c) is equal to (quote))
+			then (append string "\\\"" to (string))
+		else (if ((c) is equal to (backslash))
+			then (append string "\\\\" to (string))
+		else (if ((c) is equal to (new line))
+			then (append string "\\n" to (string))
+		else (append character (c) to (string)))).
+		set (i) to ((i) + #1).
+	}.
+	append character (quote) to (string).
+	string.
+}.
+
+define variable (ir call kind) with initial value "ir call kind".
+define variable (ir procedure kind) with initial value "ir procedure kind".
+define variable (ir sequence kind) with initial value "ir sequence kind".
+define variable (ir if kind) with initial value "ir if kind".
+define variable (ir while kind) with initial value "ir while kind".
+define variable (ir variable kind) with initial value "ir variable kind".
+define variable (ir assignment kind) with initial value "ir assignment kind".
+define variable (ir literal kind) with initial value "ir literal kind".
+define variable (ir number kind) with initial value "ir number kind".
+
+define procedure (make ir call (name) with arguments (args))
+	to do ((ir call kind), ((name), (args))).
+define procedure ((ir) is an ir call)
+	to do ((first (ir)) is equal to (ir call kind)).
+define procedure (name of ir call (ir))
+	to do (first (second (ir))).
+define procedure (arguments of ir call (ir))
+	to do (second (second (ir))).
+
+define procedure (make ir procedure (name) with body (body))
+	to do ((ir procedure kind), ((name), (body))).
+define procedure ((ir) is an ir procedure)
+	to do ((first (ir)) is equal to (ir procedure kind)).
+define procedure (name of ir procedure (ir))
+	to do (first (second (ir))).
+define procedure (body of ir procedure (ir))
+	to do (second (second (ir))).
+
+define procedure (make ir sequence (items))
+	to do ((ir sequence kind), (items)).
+define procedure ((ir) is an ir sequence)
+	to do ((first (ir)) is equal to (ir sequence kind)).
+define procedure (items of ir sequence (ir))
+	to do (second (ir)).
+
+define procedure (make ir if (condition) then (then) else (else))
+	to do ((ir if kind), ((condition), ((then), (else)))).
+define procedure ((ir) is an ir if)
+	to do ((first (ir)) is equal to (ir if kind)).
+define procedure (condition of ir if (ir))
+	to do (first (second (ir))).
+define procedure (then of ir if (ir))
+	to do (first (second (second (ir)))).
+define procedure (else of ir if (ir))
+	to do (second (second (second (ir)))).
+
+define procedure (make ir while (condition) with body (body))
+	to do ((ir while kind), ((condition), (body))).
+define procedure ((ir) is an ir while)
+	to do ((first (ir)) is equal to (ir while kind)).
+define procedure (condition of ir while (ir))
+	to do (first (second (ir))).
+define procedure (body of ir while (ir))
+	to do (second (second (ir))).
+
+define procedure (make ir variable (name) with initial value (initial value))
+	to do ((ir variable kind), ((name), (initial value))).
+define procedure ((ir) is an ir variable)
+	to do ((first (ir)) is equal to (ir variable kind)).
+define procedure (name of ir variable (ir))
+	to do (first (second (ir))).
+define procedure (initial value of ir variable (ir))
+	to do (second (second (ir))).
+
+define procedure (make ir assignment (name) with value (value))
+	to do ((ir assignment kind), ((name), (value))).
+define procedure ((ir) is an ir assignment)
+	to do ((first (ir)) is equal to (ir assignment kind)).
+define procedure (name of ir assignment (ir))
+	to do (first (second (ir))).
+define procedure (value of ir assignment (ir))
+	to do (second (second (ir))).
+
+define procedure (make ir literal (literal))
+	to do ((ir literal kind), (literal)).
+define procedure ((ir) is an ir literal)
+	to do ((first (ir)) is equal to (ir literal kind)).
+define procedure (value of ir literal (ir))
+	to do (second (ir)).
+
+define procedure (make ir number (number))
+	to do ((ir number kind), (number)).
+define procedure ((ir) is an ir number)
+	to do ((first (ir)) is equal to (ir number kind)).
+define procedure (value of ir number (ir))
+	to do (second (ir)).
+
+define variable (expression context) with initial value "expression context".
+define variable (statement context) with initial value "statement context".
+define variable (definition context) with initial value "definition context".
+define variable (declaration context) with initial value "declaration context".
+define variable (initializer context) with initial value "initializer context".
+define variable (nested definition context) with initial value "nested definition context".
+define variable (procedure definition context) with initial value "procedure definition context".
+
+define procedure ((list) contains (elem)) to do {
+	define variable (found) with initial value (false).
+	while (list) do {
+		if ((first (list)) is equal to (elem)) then {
+			set (list) to (false).
+			set (found) to (true).
+		} else (set (list) to (second (list))).
+	}.
+	found.
+}.
+
+define procedure (lookup (key) in (alist)) to do {
+	define variable (found) with initial value (false).
+	while (alist) do {
+		if ((first (first (alist))) is equal to (key)) then {
+			set (found) to (second (first (alist))).
+			set (alist) to (false).
+		} else (set (alist) to (second (alist))).
+	}.
+	found.
+}.
+
+define variable (variable list) with initial value (false).
+define variable (function list) with initial value (false).
+
+define procedure (register variable (var) in scope (scope)) to do {
+	define variable (old scope) with initial value (lookup (var) in (variable list)).
+	if (not ((old scope) is equal to (scope)))
+		then (set (variable list) to (((var), (scope)), (variable list)))
+		else (true).
+}.
+
+define procedure ((context) is an evaluation)
+	to do (not ((((context) is equal to (definition context))
+		or ((context) is equal to (initializer context))
+		or ((context) is equal to (nested definition context))
+		or ((context) is equal to (procedure definition context)))
+		or ((context) is equal to (declaration context)))).
+
+define variable (global scope) with initial value "global".
+
+define procedure (emit reference to variable (name) from scope (var scope) in scope (scope) to (out)) to do {
+	if ((var scope) is equal to (global scope))
+		then (append string (name) to (out))
+	else {
+		if ((var scope) is equal to (scope)) then {
+			append string "local_vars." to (out).
+		} else {
+			append string (var scope) to (out).
+			append string "_local_vars->" to (out).
+		}.
+		append string (name) to (out).
+	}.
+}.
+
+define procedure (emit locals struct tag for (proc name) to (out)) to do {
+	append string "struct " to (out).
+	append string (proc name) to (out).
+	append string "_local_vars" to (out).
+}.
+
+define procedure (emit locals struct for procedure (ir) named (proc name) to (out) in (scope)) to do {
+	emit locals struct tag for (proc name) to (out).
+	append string " {\n" to (out).
+	if (not ((scope) is equal to (global scope))) then {
+		emit locals struct declaration for (scope) to (out) in (proc name).
+		append string ";\n" to (out).
+	} else (false).
+	define variable (args) with initial value (arguments of action (name of ir procedure (ir))).
+	define variable (ident) with initial value (false).
+	while (args) do {
+		set (ident) to (C ident for action (second (first (args)))).
+		if (not ((lookup (ident) in (variable list)) is equal to (proc name))) then {
+			register variable (ident) in scope (proc name).
+			append string "struct value *" to (out).
+			append string (ident) to (out).
+			append string ";\n" to (out).
+		} else (false).
+		set (args) to (second (args)).
+	}.
+	emit (body of ir procedure (ir)) to (out) in (nested definition context) with scope (proc name).
+	append string "};\n" to (out).
+}.
+
+define procedure (emit locals struct declaration for (proc name) to (out) in (scope)) to do {
+	emit locals struct tag for (proc name) to (out).
+	if ((proc name) is equal to (scope)) then {
+		append string " local_vars" to (out).
+	} else {
+		append string " *" to (out).
+		append string (proc name) to (out).
+		append string "_local_vars" to (out).
+	}.
+}.
+
+define variable (continue) with initial value (true).
+
+define procedure (compile error (msg)) to do {
+	write "compile error: ".
+	write line (msg).
+	set (continue) to (false).
+}.
+
+define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
+	define variable (args) with initial value (false).
+	define variable (var scope) with initial value (false).
+	define variable (sep) with initial value (false).
+	define variable (name) with initial value (false).
+	if ((ir) is an ir call) then {
+		if ((context) is an evaluation) then {
+			set (args) to (arguments of ir call (ir)).
+			set (name) to (name of ir call (ir)).
+			set (var scope) to (lookup (name) in (variable list)).
+			if ((args) or (not (var scope))) then {
+				define variable (function info) with initial value (lookup (name) in (function list)).
+				if (function info)
+					then (set (name) to (first (function info)))
+					else (set (name) to (concat (global scope) and (concat "_SCOPE" and (name)))).
+				append string (name) to (out).
+				append string "(" to (out).
+				set (sep) to "".
+				if (function info) then (if (not ((second (function info)) is equal to (global scope))) then {
+					append string "&local_vars" to (out).
+					set (sep) to ",".
+				} else (false)) else (false).
+				while (args) do {
+					append string (sep) to (out).
+					emit (first (args)) to (out) in (expression context) with scope (scope).
+					set (sep) to ",".
+					set (args) to (second (args)).
+				}.
+				append string ")" to (out).
+				if ((context) is equal to (statement context))
+					then (append string ";\n" to (out))
+					else (false).
+			} else {
+				emit reference to variable (name) from scope (var scope) in scope (scope) to (out).
+				if ((context) is equal to (statement context))
+					then (append string ";\n" to (out))
+					else (false).
+			}.
+		} else (false).
+	} else (if ((ir) is an ir procedure) then {
+		define variable (proc name) with initial value (C ident for action (name of ir procedure (ir))).
+		define variable (adjusted proc name) with initial value (concat (scope) and (concat "_SCOPE" and (proc name))).
+		set (function list) to (((proc name), ((adjusted proc name), (scope))), (function list)).
+		set (proc name) to (adjusted proc name).
+		define variable (old function list) with initial value (function list).
+		if (((context) is equal to (definition context)) or ((context) is equal to (procedure definition context))
+			or ((context) is equal to (declaration context))) then {
+			if ((context) is equal to (declaration context)) then {
+				emit locals struct for procedure (ir) named (proc name) to (out) in (scope).
+				emit (body of ir procedure (ir)) to (out) in (declaration context) with scope (proc name).
+			} else {
+				emit (body of ir procedure (ir)) to (out) in (procedure definition context) with scope (proc name).
+			}.
+			append string "struct value *" to (out).
+			append string (proc name) to (out).
+			append string "(" to (out).
+			define variable (old variable list) with initial value (variable list).
+			set (args) to (arguments of action (name of ir procedure (ir))).
+			set (sep) to "".
+			define variable (ident) with initial value (false).
+			if ((args) or (not ((scope) is equal to (global scope)))) then {
+				if (not ((scope) is equal to (global scope))) then {
+					emit locals struct declaration for (scope) to (out) in (proc name).
+					set (sep) to ", ".
+				} else (false).
+				while (args) do {
+					set (ident) to (C ident for action (second (first (args)))).
+					append string (sep) to (out).
+					append string "struct value *" to (out).
+					append string (ident) to (out).
+					set (args) to (second (args)).
+					set (sep) to ", ".
+				}.
+			} else (append string "void" to (out)).
+			append string ")" to (out).
+			if ((context) is equal to (declaration context)) then {
+				append string ";\n" to (out).
+			} else {
+				append string "{\n" to (out).
+				emit locals struct declaration for (proc name) to (out) in (proc name).
+				append string ";\n" to (out).
+
+				emit (body of ir procedure (ir)) to (out) in (initializer context) with scope (proc name).
+				set (args) to (arguments of action (name of ir procedure (ir))).
+				if (not ((scope) is equal to (global scope))) then {
+					append string "local_vars." to (out).
+					append string (scope) to (out).
+					append string "_local_vars = " to (out).
+					append string (scope) to (out).
+					append string "_local_vars;\n" to (out).
+				} else (false).
+				while (args) do {
+					set (ident) to (C ident for action (second (first (args)))).
+					append string "local_vars." to (out).
+					append string (ident) to (out).
+					append string " = " to (out).
+					append string (ident) to (out).
+					append string ";\n" to (out).
+					set (args) to (second (args)).
+				}.
+
+				append string "return " to (out).
+				emit (body of ir procedure (ir)) to (out) in (expression context) with scope (proc name).
+				append string ";\n}\n" to (out).
+				}.
+			set (variable list) to (old variable list).
+		} else (false).
+		set (function list) to (old function list).
+	} else (if ((ir) is an ir sequence) then {
+		define variable (items)
+			with initial value (items of ir sequence (ir)).
+		define variable (expected sep) with initial value "".
+		define variable (old length) with initial value (false).
+		if ((context) is equal to (expression context)) then {
+			set (expected sep) to ", ".
+			append string "(" to (out).
+		} else (false).
+		set (sep) to (expected sep).
+		set (old length) to (length (out)).
+		while (items) do {
+			if (not ((old length) is equal to (length (out)))) 
+				then (append string (sep) to (out))
+				else (false).
+			set (old length) to (length (out)).
+			emit (first (items)) to (out) in (context) with scope (scope).
+			set (items) to (second (items)).
+		}.
+		if ((context) is equal to (expression context))
+			then (append string ")" to (out))
+			else (false).
+	} else (if ((ir) is an ir if) then {
+		if ((context) is equal to (expression context)) then {
+			append string "(value_boolean_is_true(" to (out).
+			emit (condition of ir if (ir)) to (out) in (expression context) with scope (scope).
+			append string ") ? (" to (out).
+			emit (then of ir if (ir)) to (out) in (context) with scope (scope).
+			append string ") : (" to (out).
+			emit (else of ir if (ir)) to (out) in (context) with scope (scope).
+			append string "))" to (out).
+		} else (if ((context) is equal to (statement context)) then {
+			append string "if (value_boolean_is_true(" to (out).
+			emit (condition of ir if (ir)) to (out) in (expression context) with scope (scope).
+			append string ")) {\n" to (out).
+			emit (then of ir if (ir)) to (out) in (statement context) with scope (scope).
+			append string "\n} else {\n" to (out).
+			emit (else of ir if (ir)) to (out) in (statement context) with scope (scope).
+			append string "}" to (out).
+		} else {
+			emit (condition of ir if (ir)) to (out) in (context) with scope (scope).
+			emit (then of ir if (ir)) to (out) in (context) with scope (scope).
+			emit (else of ir if (ir)) to (out) in (context) with scope (scope).
+		}).
+	} else (if ((ir) is an ir while) then {
+		if ((context) is equal to (statement context)) then {
+			append string "while (value_boolean_is_true(" to (out).
+			emit (condition of ir while (ir)) to (out) in (expression context) with scope (scope).
+			append string ")) {\n" to (out).
+			emit (body of ir while (ir)) to (out) in (statement context) with scope (scope).
+			append string "\n}\n" to (out).
+		} else (if ((context) is equal to (expression context)) then {
+			append string "({ " to (out).
+			emit (ir) to (out) in (statement context) with scope (scope).
+			append string " 0; })" to (out).
+		} else {
+			emit (condition of ir while (ir)) to (out) in (context) with scope (scope).
+			emit (body of ir while (ir)) to (out) in (context) with scope (scope).
+		}).
+	} else (if ((ir) is an ir variable) then {
+		set (name) to
+			(C ident for action (name of ir variable (ir))).
+		if (not ((lookup (name) in (variable list)) is equal to (scope)))
+			then (register variable (name) in scope (scope))
+			else (false).
+		if (((context) is equal to (definition context)) or ((context) is equal to (nested definition context))) then {
+			append string "struct value *" to (out).
+			append string (name) to (out).
+			append string ";\n" to (out).
+		} else (if ((context) is equal to (statement context)) then {
+			emit reference to variable (C ident for action (name of ir assignment (ir)))
+				from scope (scope) in scope (scope) to (out).
+			append string " = " to (out).
+			emit (initial value of ir variable (ir)) to (out) in (expression context) with scope (scope).
+			append string ";\n" to (out).
+		} else (if ((context) is equal to (expression context)) then {
+			append string "(" to (out).
+			emit reference to variable (C ident for action (name of ir assignment (ir)))
+				from scope (scope) in scope (scope) to (out).
+			append string " = " to (out).
+			emit (initial value of ir variable (ir)) to (out) in (expression context) with scope (scope).
+			append string ")" to (out).
+		} else (if ((context) is equal to (initializer context)) then {
+			emit reference to variable (C ident for action (name of ir assignment (ir)))
+				from scope (scope) in scope (scope) to (out).
+			append string " = 0;\n" to (out).
+		} else (false)))).
+	} else (if ((ir) is an ir assignment) then {
+		set (name) to (C ident for action (name of ir assignment (ir))).
+		set (var scope) to (lookup (name) in (variable list)).
+		if (var scope) then {
+			if ((context) is an evaluation) then {
+				append string "(" to (out).
+				emit reference to variable (name)
+					from scope (var scope) in scope (scope) to (out).
+				append string " = " to (out).
+				emit (value of ir assignment (ir)) to (out) in (expression context) with scope (scope).
+				append string ")" to (out).
+				if ((context) is equal to (statement context))
+					then (append string ";\n" to (out))
+					else (false).
+			} else (false).
+		} else {
+			write "error: var ".
+			write (name).
+			write " not in scope in ".
+			write (context).
+			write " in ".
+			write line (scope).
+		}.
+	} else (if ((ir) is an ir literal) then {
+		if ((context) is an evaluation) then {
+			append string "value_make_string_from_c_string(" to (out).
+			append string (value of ir literal (ir)) to (out).
+			append string ")" to (out).
+			if ((context) is equal to (statement context))
+				then (append string ";\n" to (out))
+				else (false).
+		} else (false).
+	} else (if ((ir) is an ir number) then {
+		if ((context) is an evaluation) then {
+			append string "value_make_number(" to (out).
+			append string (string of number (value of ir number (ir))) to (out).
+			append string ")" to (out).
+			if ((context) is equal to (statement context))
+				then (append string ";\n" to (out))
+				else (false).
+		} else (false).
+	} else (compile error "unrecognized ir kind"))))))))).
+}.
+
+define variable (declarations) with initial value "".
+define variable (definitions) with initial value "".
+define variable (initializers) with initial value "".
+define variable (main) with initial value "".
+
+define procedure (compile (tree)) to do {
+	if ((tree) is an action) then {
+		define variable (ir args) with initial value (false).
+		define variable (args) with initial value (arguments of action (tree)).
+		if ((name of action (tree)) is equal to "define procedure  to do")
+			then (make ir procedure (second ((args) at #0))
+				with body (compile (second ((args) at #1))))
+		else (if ((name of action (tree)) is equal to "define variable  with initial value")
+			then (make ir variable (second ((args) at #0))
+				with initial value (compile (second ((args) at #1))))
+		else (if ((name of action (tree)) is equal to "set  to")
+			then (make ir assignment (second ((args) at #0))
+				with value (compile (second ((args) at #1))))
+		else (if ((name of action (tree)) is equal to "if  then  else")
+			then (make ir if (compile (second ((args) at #0)))
+				then (compile (second ((args) at #1)))
+				else (compile (second ((args) at #2))))
+		else (if ((name of action (tree)) is equal to "while  do")
+			then (make ir while (compile (second ((args) at #0)))
+				with body (compile (second ((args) at #1))))
+		else {
+			while (args) do {
+				set (ir args) to ((compile (second (first (args)))), (ir args)).
+				set (args) to (second (args)).
+			}.
+			make ir call (C ident for action (tree)) with arguments (reverse list (ir args)).
+		})))).
+	} else (if ((tree) is a sequence) then {
+		define variable (ir items) with initial value (false).
+		define variable (items) with initial value (items of sequence (tree)).
+		while (items) do {
+			set (ir items) to ((compile (first (items))), (ir items)).
+			set (items) to (second (items)).
+		}.
+		make ir sequence (reverse list (ir items)).
+	} else (if ((tree) is a number) then {
+		make ir number (value of number (tree)).
+	} else (if ((tree) is a literal) then {
+		make ir literal (C string for literal (value of literal (tree))).
+	} else (compile error "unsupported kind of tree")))).
+}.
+
+define variable (tree) with initial value (false).
+define variable (ir) with initial value (false).
+
+while (continue) do {
+	set (tree) to (parse (true)).
+	if (tree) then {
+		set (ir) to (compile (tree)).	
+		emit (ir) to (declarations) in (declaration context) with scope (global scope).
+		emit (ir) to (definitions) in (definition context) with scope (global scope).
+		emit (ir) to (initializers) in (initializer context) with scope (global scope).
+		emit (ir) to (main) in (statement context) with scope (global scope).
+	} else (set (continue) to (false)).
+}.
+
+write line "#include \"caleinrtl.inc.c\"".
+write line (declarations).
+write line (definitions).
+write line "int main() {".
+write line (initializers).
+write (main).
+write line "return 0;".
+write line "}".

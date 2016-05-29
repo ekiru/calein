@@ -105,32 +105,6 @@ static struct value *primitive_not(const struct action *action) {
 	return value_make_boolean(!value_boolean_is_true(eval(action->args[0])));
 }
 
-static bool value_is_equal_to(struct value *x, struct value *y) {
-	if (x->kind == y->kind) {
-		switch (x->kind) {
-		case value_kind_boolean:
-			return x->u.boolean == y->u.boolean;
-			break;
-		case value_kind_string:
-			return string_equals(&x->u.string, &y->u.string);
-			break;
-		case value_kind_number:
-			return x->u.number == y->u.number;
-			break;
-		case value_kind_pair:
-			return value_is_equal_to(x->u.pair[0], y->u.pair[0])
-				&& value_is_equal_to(x->u.pair[1], y->u.pair[1]);
-			break;
-		default:
-			log_error("Unrecognized kind %d in (x) is equal to (y).", x->kind);
-			return false;
-			break;
-		}
-	} else {
-		return false;
-	}
-}
-
 static struct value *primitive_is_equal_to(const struct action *action) {
 	return value_make_boolean(value_is_equal_to(eval(action->args[0]), eval(action->args[1])));
 }
@@ -271,8 +245,8 @@ static struct value *eval(struct syntax_tree *tree) {
 				return apply(def, &tree->u.action);
 			}
 		}
-		log_error("Unrecognized selector %.*s", (int) tree->u.action.selector.length, tree->u.action.selector.data);
-		return 0;
+		log_error("Unrecognized selector %.*s at line %lu", (int) tree->u.action.selector.length, tree->u.action.selector.data, tree->line);
+		exit(1);
 		break;
 	case syntax_tree_kind_sequence:
 		for (size_t i = 0; i < syntax_tree_max_sequence && tree->u.sequence[i]; i++) {
@@ -287,7 +261,7 @@ static struct value *eval(struct syntax_tree *tree) {
 }
 
 static void interp(struct syntax_tree *tree) {
-	struct value *res = eval(tree);
+	eval(tree);
 }
 
 static bool define_primitive(
