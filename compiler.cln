@@ -81,16 +81,29 @@ define procedure ((c) is whitespace) to do
 	 ((c) is equal to (new line))).
 
 
+define variable (line number) with initial value #1.
+define variable (column number) with initial value #1.
+
 define variable (ungotten character) with initial value (false).
 define procedure (get character) to do {
+	define variable (tmp) with initial value (false).
 	if (ungotten character) then {
-		define variable (tmp) with initial value (ungotten character).
+		set (tmp) to (ungotten character).
 		set (ungotten character) to (false).
-		tmp.
-	} else (read character).
+	} else (set (tmp) to (read character)).
+	if ((tmp) is equal to (new line)) then {
+		set (line number) to ((line number) + #1).
+		set (column number) to #1.
+	} else (set (column number) to ((column number) + #1)).
+	tmp.
 }.
-define procedure (unget character (c))
-	to do (set (ungotten character) to (c)).
+define procedure (unget character (c)) to do {
+	set (ungotten character) to (c).
+	if ((c) is equal to (new line)) then {
+		set (line number) to ((line number) - #1).
+		set (column number) to (#0 - #1).
+	} else (set (column number) to ((column number) - #1)).
+}.
 
 define procedure (reverse list (list)) to do {
 	define variable (acc) with initial value (false).
@@ -187,14 +200,20 @@ define procedure ((c) is (c 1), (c 2), (c 3), or (c 4))
 		((c) is equal to (c 3)) or ((c) is equal to (c 4))).
 
 define procedure (try parse action after (first child)) to do {
+	define variable (tree) with initial value (false).
 	define variable (again in action) with initial value (true).
 	define variable (children) with initial value (false).
 	define variable (literal) with initial value "".
 	define variable (paren) with initial value (false).
 	define variable (child) with initial value (false).
+
 	define procedure (error (msg))
 		to do {
-			write "Parse error: ".
+			write "Parse error at line ".
+			write (line number).
+			write ", column ".
+			write (column number).
+			write ": ".
 			write line (msg).
 			set (again in action) to (false).
 	}.
