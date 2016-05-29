@@ -1,5 +1,3 @@
-define variable (c) with initial value #0.
-
 define variable (true) with initial value (#0 is equal to #0).
 define variable (false) with initial value (not (true)).
 define variable (tab) with initial value #9.
@@ -207,6 +205,8 @@ define procedure (try parse action after (first child)) to do {
 	define variable (paren) with initial value (false).
 	define variable (child) with initial value (false).
 
+	define variable (c) with initial value #0.
+
 	define procedure (error (msg))
 		to do {
 			write "Parse error at line ".
@@ -286,6 +286,7 @@ define procedure (parse (at start of expression)) to do {
 		set (again in sequence) to (false).
 		set (again) to (false).
 	}.
+	define variable (c) with initial value #0.
 
 	define variable (tree) with initial value (false).
 	while (again) do {
@@ -362,7 +363,7 @@ define procedure (parse (at start of expression)) to do {
 			then (unget character (c))
 		else (if (c) then {
 			unget character (c).
-			try parse action after (false).
+			set (tree) to (try parse action after (false)).
 		} else (false)))))).
 	}.
 	tree.
