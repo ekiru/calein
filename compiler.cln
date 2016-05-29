@@ -425,6 +425,7 @@ define variable (ir call kind) with initial value "ir call kind".
 define variable (ir procedure kind) with initial value "ir procedure kind".
 define variable (ir sequence kind) with initial value "ir sequence kind".
 define variable (ir if kind) with initial value "ir if kind".
+define variable (ir while kind) with initial value "ir while kind".
 define variable (ir variable kind) with initial value "ir variable kind".
 define variable (ir assignment kind) with initial value "ir assignment kind".
 define variable (ir literal kind) with initial value "ir literal kind".
@@ -465,6 +466,15 @@ define procedure (then of ir if (ir))
 	to do (first (second (second (ir)))).
 define procedure (else of ir if (ir))
 	to do (second (second (second (ir)))).
+
+define procedure (make ir while (condition) with body (body))
+	to do ((ir while kind), ((condition), (body))).
+define procedure ((ir) is an ir while)
+	to do ((first (ir)) is equal to (ir while kind)).
+define procedure (condition of ir while (ir))
+	to do (first (second (ir))).
+define procedure (body of ir while (ir))
+	to do (second (second (ir))).
 
 define procedure (make ir variable (name) with initial value (initial value))
 	to do ((ir variable kind), ((name), (initial value))).
@@ -524,7 +534,7 @@ define procedure (emit (ir) to (out) in (context)) to do {
 	if ((ir) is an ir call) then {
 		if ((context) is an evaluation) then {
 			define variable (args) with initial value (arguments of ir call (ir)).
-			if ((args) and (not ((variable list) contains (name of ir call (ir))))) then {
+			if ((args) or (not ((variable list) contains (name of ir call (ir))))) then {
 				append string (name of ir call (ir)) to (out).
 				append string "(" to (out).
 				define variable (sep) with initial value "".
@@ -570,9 +580,7 @@ define procedure (emit (ir) to (out) in (context)) to do {
 		if ((context) is equal to (expression context)) then {
 			set (expected sep) to ", ".
 			append string "(" to (out).
-		} else (if ((context) is equal to (statement context)) then {
-			set (expected sep) to ";\n".
-		}).
+		} else (false).
 		define variable (sep) with initial value "".
 		while (items) do {
 			append string (sep) to (out).
@@ -601,6 +609,18 @@ define procedure (emit (ir) to (out) in (context)) to do {
 			emit (else of ir if (ir)) to (out) in (context).
 			append string "}" to (out).
 		} else (false)).
+	} else (if ((ir) is an ir while) then {
+		if ((context) is equal to (statement context)) then {
+			append string "while (value_boolean_is_true(" to (out).
+			emit (condition of ir while (ir)) to (out) in (context).
+			append string ")) {\n" to (out).
+			emit (body of ir while (ir)) to (out) in (context).
+			append string "\n}\n" to (out).
+		} else (if ((context) is equal to (expression context)) then {
+			append string "({ " to (out).
+			emit (ir) to (out) in (statement context).
+			append string " 0; })" to (out).
+		} else (false)).
 	} else (if ((ir) is an ir variable) then {
 		define variable (name) with initial value
 			(C ident for action (name of ir variable (ir))).
@@ -609,7 +629,7 @@ define procedure (emit (ir) to (out) in (context)) to do {
 			append string (name) to (out).
 			append string ";\n" to (out).
 			set (variable list) to ((name), (variable list)).
-		} else (if ((context) is equal to (initializer context)) then {
+		} else (if ((context) is equal to (statement context)) then {
 			append string (C ident for action (name of ir variable (ir))) to (out).
 			append string " = " to (out).
 			emit (initial value of ir variable (ir)) to (out) in (expression context).
@@ -644,7 +664,7 @@ define procedure (emit (ir) to (out) in (context)) to do {
 				then (append string ";\n" to (out))
 				else (false).
 		} else (false).
-	} else (compile error "unrecognized ir kind")))))))).
+	} else (compile error "unrecognized ir kind"))))))))).
 }.
 
 define variable (declarations) with initial value "".
@@ -669,13 +689,16 @@ define procedure (compile (tree)) to do {
 			then (make ir if (compile (second ((args) at #0)))
 				then (compile (second ((args) at #1)))
 				else (compile (second ((args) at #2))))
+		else (if ((name of action (tree)) is equal to "while  do")
+			then (make ir while (compile (second ((args) at #0)))
+				with body (compile (second ((args) at #1))))
 		else {
 			while (args) do {
 				set (ir args) to ((compile (second (first (args)))), (ir args)).
 				set (args) to (second (args)).
 			}.
 			make ir call (C ident for action (tree)) with arguments (reverse list (ir args)).
-		}))).
+		})))).
 	} else (if ((tree) is a sequence) then {
 		define variable (ir items) with initial value (false).
 		define variable (items) with initial value (items of sequence (tree)).

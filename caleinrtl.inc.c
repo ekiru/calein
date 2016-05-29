@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include "err.h"
 #include "str.h"
 #include "value.h"
 
@@ -19,6 +20,14 @@ static struct value *calein__SPACE_ARGis_SPACEequal_SPACEto_ARG(struct value *x,
 	return value_make_boolean(value_is_equal_to(x, y));
 }
 
+static struct value *calein_append_SPACEcharacter_SPACE_SPACE_ARGto_ARG(struct value *c, struct value *s) {
+	if (!string_add_character(value_string_value(s), (char) value_number_value(c))) {
+		log_error("Failed to append character");
+		exit(1);
+	}
+	return 0;
+}
+
 static struct value *calein_write_ARG(struct value *s) {
 	value_write(s);
 	return 0;
@@ -26,9 +35,19 @@ static struct value *calein_write_ARG(struct value *s) {
 
 static struct value *calein_write_SPACEline_ARG(struct value *s) {
 	value_write(s);
-	putchar('\n');
+	puts("");
+	fflush(stdout);
 	return 0;
 };
+
+static struct value *calein_read_SPACEcharacter(void) {
+	int c = getchar();
+	if (c == EOF ) {
+		return value_make_boolean(false);
+	} else {
+		return value_make_number(c);
+	}
+}
 
 #define NUMBER_BINOP(name, op) \
 	static struct value *calein__SPACE_ARG ## name ## _ARG(struct value *x, struct value *y) { \
