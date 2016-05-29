@@ -577,16 +577,20 @@ define procedure (emit (ir) to (out) in (context)) to do {
 		define variable (items)
 			with initial value (items of ir sequence (ir)).
 		define variable (expected sep) with initial value "".
+		define variable (old length) with initial value (false).
 		if ((context) is equal to (expression context)) then {
 			set (expected sep) to ", ".
 			append string "(" to (out).
 		} else (false).
-		define variable (sep) with initial value "".
+		define variable (sep) with initial value (expected sep).
+		set (old length) to (length (out)).
 		while (items) do {
-			append string (sep) to (out).
+			if (not ((old length) is equal to (length (out)))) 
+				then (append string (sep) to (out))
+				else (false).
+			set (old length) to (length (out)).
 			emit (first (items)) to (out) in (context).
 			set (items) to (second (items)).
-			set (sep) to (expected sep).
 		}.
 		if ((context) is equal to (expression context))
 			then (append string ")" to (out))
@@ -634,7 +638,10 @@ define procedure (emit (ir) to (out) in (context)) to do {
 			append string " = " to (out).
 			emit (initial value of ir variable (ir)) to (out) in (expression context).
 			append string ";\n" to (out).
-		} else (false)).
+		} else (if ((context) is equal to (initializer context)) then {
+			append string (C ident for action (name of ir variable (ir))) to (out).
+			append string " = 0;\n" to (out).
+		} else (false))).
 	} else (if ((ir) is an ir assignment) then {
 		if ((context) is an evaluation) then {
 			append string "(" to (out).
