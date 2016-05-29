@@ -1,0 +1,9 @@
+define procedure (foo) to do (write line "foo").
+define procedure (bar) to do {
+	define procedure (foo) to do (write line "bar").
+	foo.
+}.
+
+foo.
+bar.
+foo.
