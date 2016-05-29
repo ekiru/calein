@@ -540,6 +540,7 @@ define procedure (value of ir number (ir))
 define variable (expression context) with initial value "expression context".
 define variable (statement context) with initial value "statement context".
 define variable (definition context) with initial value "definition context".
+define variable (declaration context) with initial value "declaration context".
 define variable (initializer context) with initial value "initializer context".
 define variable (nested definition context) with initial value "nested definition context".
 define variable (procedure definition context) with initial value "procedure definition context".
@@ -577,10 +578,11 @@ define procedure (register variable (var) in scope (scope)) to do {
 }.
 
 define procedure ((context) is an evaluation)
-	to do (not (((context) is equal to (definition context))
+	to do (not ((((context) is equal to (definition context))
 		or ((context) is equal to (initializer context))
 		or ((context) is equal to (nested definition context))
-		or ((context) is equal to (procedure definition context)))).
+		or ((context) is equal to (procedure definition context)))
+		or ((context) is equal to (declaration context)))).
 
 define variable (global scope) with initial value "global".
 
@@ -658,7 +660,9 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 			set (var scope) to (lookup (name) in (variable list)).
 			if ((args) or (not (var scope))) then {
 				define variable (function info) with initial value (lookup (name) in (function list)).
-				if (function info) then (set (name) to (first (function info))) else (false).
+				if (function info)
+					then (set (name) to (first (function info)))
+					else (set (name) to (concat (global scope) and (concat "_SCOPE" and (name)))).
 				append string (name) to (out).
 				append string "(" to (out).
 				set (sep) to "".
@@ -689,9 +693,14 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 		set (function list) to (((proc name), ((adjusted proc name), (scope))), (function list)).
 		set (proc name) to (adjusted proc name).
 		define variable (old function list) with initial value (function list).
-		if (((context) is equal to (definition context)) or ((context) is equal to (procedure definition context))) then {
-			emit locals struct for procedure (ir) named (proc name) to (out) in (scope).
-			emit (body of ir procedure (ir)) to (out) in (procedure definition context) with scope (proc name).
+		if (((context) is equal to (definition context)) or ((context) is equal to (procedure definition context))
+			or ((context) is equal to (declaration context))) then {
+			if ((context) is equal to (declaration context)) then {
+				emit locals struct for procedure (ir) named (proc name) to (out) in (scope).
+				emit (body of ir procedure (ir)) to (out) in (declaration context) with scope (proc name).
+			} else {
+				emit (body of ir procedure (ir)) to (out) in (procedure definition context) with scope (proc name).
+			}.
 			append string "struct value *" to (out).
 			append string (proc name) to (out).
 			append string "(" to (out).
@@ -713,15 +722,20 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 					set (sep) to ", ".
 				}.
 			} else (append string "void" to (out)).
-			append string "){\n" to (out).
+			append string ")" to (out).
+			if ((context) is equal to (declaration context)) then {
+				append string ";\n" to (out).
+			} else {
+				append string "{\n" to (out).
 
-			emit locals struct declaration for (proc name) to (out) in (proc name).
-			append string ";\n" to (out).
-			emit (body of ir procedure (ir)) to (out) in (initializer context) with scope (proc name).
+				emit locals struct declaration for (proc name) to (out) in (proc name).
+				append string ";\n" to (out).
+				emit (body of ir procedure (ir)) to (out) in (initializer context) with scope (proc name).
 
-			append string "return " to (out).
-			emit (body of ir procedure (ir)) to (out) in (expression context) with scope (proc name).
-			append string ";\n}\n" to (out).
+				append string "return " to (out).
+				emit (body of ir procedure (ir)) to (out) in (expression context) with scope (proc name).
+				append string ";\n}\n" to (out).
+			}.
 			set (variable list) to (old variable list).
 		} else (false).
 		set (function list) to (old function list).
@@ -910,6 +924,7 @@ while (continue) do {
 	set (tree) to (parse (true)).
 	if (tree) then {
 		set (ir) to (compile (tree)).	
+		emit (ir) to (declarations) in (declaration context) with scope (global scope).
 		emit (ir) to (definitions) in (definition context) with scope (global scope).
 		emit (ir) to (initializers) in (initializer context) with scope (global scope).
 		emit (ir) to (main) in (statement context) with scope (global scope).
@@ -917,6 +932,7 @@ while (continue) do {
 }.
 
 write line "#include \"caleinrtl.inc.c\"".
+write line (declarations).
 write line (definitions).
 write line "int main() {".
 write line (initializers).
