@@ -727,15 +727,32 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 				append string ";\n" to (out).
 			} else {
 				append string "{\n" to (out).
-
 				emit locals struct declaration for (proc name) to (out) in (proc name).
 				append string ";\n" to (out).
+
 				emit (body of ir procedure (ir)) to (out) in (initializer context) with scope (proc name).
+				set (args) to (arguments of action (name of ir procedure (ir))).
+				if (not ((scope) is equal to (global scope))) then {
+					append string "local_vars." to (out).
+					append string (scope) to (out).
+					append string "_local_vars = " to (out).
+					append string (scope) to (out).
+					append string "_local_vars;\n" to (out).
+				} else (false).
+				while (args) do {
+					set (ident) to (C ident for action (second (first (args)))).
+					append string "local_vars." to (out).
+					append string (ident) to (out).
+					append string " = " to (out).
+					append string (ident) to (out).
+					append string ";\n" to (out).
+					set (args) to (second (args)).
+				}.
 
 				append string "return " to (out).
 				emit (body of ir procedure (ir)) to (out) in (expression context) with scope (proc name).
 				append string ";\n}\n" to (out).
-			}.
+				}.
 			set (variable list) to (old variable list).
 		} else (false).
 		set (function list) to (old function list).
