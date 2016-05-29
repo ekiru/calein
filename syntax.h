@@ -28,6 +28,7 @@ void action_finish(struct action *action);
 
 struct syntax_tree {
 	enum syntax_tree_kind kind;
+	size_t line;
 	union {
 		struct string literal;
 		struct action action;

@@ -28,6 +28,7 @@ static struct syntax_tree *parse_generic(bool start_of_expression, void *data, i
 			if (!tree) {
 				return 0;
 			}
+			tree->line = line;
 			string_init_empty(&tree->u.literal);
 			
 			bool in_escape = false;
@@ -74,6 +75,7 @@ static struct syntax_tree *parse_generic(bool start_of_expression, void *data, i
 			return 0;
 		} else if (c == '#') {
 			struct syntax_tree *tree = syntax_tree_new(syntax_tree_kind_number); 
+			tree->line = line;
 			bool negative = false, start = true;
 			if (!tree) {
 				return 0;
@@ -117,6 +119,7 @@ static struct syntax_tree *parse_generic(bool start_of_expression, void *data, i
 			}
 		} else if (c == '{') {
 			struct syntax_tree *tree = syntax_tree_new(syntax_tree_kind_sequence);
+			tree->line = line;
 			size_t next = 0;
 			for (;;) {
 				c = getc(data);
@@ -159,6 +162,7 @@ static struct syntax_tree *parse_generic(bool start_of_expression, void *data, i
 
 static struct syntax_tree *try_parse_following_action(struct syntax_tree *firstChild, void *data, int (*getc)(void *), void (*ungetc)(int, void *)) {
 	struct syntax_tree *tree = syntax_tree_new(syntax_tree_kind_action);
+	tree->line = line;
 	string_init_empty(&tree->u.action.selector);
 	if (firstChild) {
 		tree->u.action.arg_indexes[tree->u.action.arg_count] = 0;

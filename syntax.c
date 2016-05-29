@@ -57,6 +57,7 @@ void syntax_tree_free(struct syntax_tree *tree) {
 struct syntax_tree *syntax_tree_clone(const struct syntax_tree *tree) {
 	struct syntax_tree *copy = calloc(1, sizeof *copy);
 	if (copy) {
+		copy->line = tree->line;
 		switch (tree->kind) {
 		case syntax_tree_kind_literal:
 			copy->kind = syntax_tree_kind_literal;
