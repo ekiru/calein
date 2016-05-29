@@ -645,7 +645,7 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 				} else (false).
 				while (args) do {
 					set (ident) to (C ident for action (second (first (args)))).
-					set (variable list) to ((ident), (variable list)).
+					set (variable list) to (((ident), (proc name)), (variable list)).
 					append string (sep) to (out).
 					append string "struct value *" to (out).
 					append string (ident) to (out).
