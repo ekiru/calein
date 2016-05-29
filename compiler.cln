@@ -568,7 +568,12 @@ define procedure (emit (ir) to (out) in (context)) to do {
 				set (args) to (second (args)).
 				set (sep) to ", ".
 			}) else (append string "void" to (out)).
-			append string "){\nreturn " to (out).
+			append string "){\n" to (out).
+
+			emit (body of ir procedure (ir)) to (out) in (definition context).
+			emit (body of ir procedure (ir)) to (out) in (initializer context).
+
+			append string "return " to (out).
 			emit (body of ir procedure (ir)) to (out) in (expression context).
 			append string ";\n}\n" to (out).
 			set (variable list) to (old variable list).
@@ -638,10 +643,16 @@ define procedure (emit (ir) to (out) in (context)) to do {
 			append string " = " to (out).
 			emit (initial value of ir variable (ir)) to (out) in (expression context).
 			append string ";\n" to (out).
+		} else (if ((context) is equal to (expression context)) then {
+			append string "(" to (out).
+			append string (C ident for action (name of ir variable (ir))) to (out).
+			append string " = " to (out).
+			emit (initial value of ir variable (ir)) to (out) in (expression context).
+			append string ")" to (out).
 		} else (if ((context) is equal to (initializer context)) then {
 			append string (C ident for action (name of ir variable (ir))) to (out).
 			append string " = 0;\n" to (out).
-		} else (false))).
+		} else (false)))).
 	} else (if ((ir) is an ir assignment) then {
 		if ((context) is an evaluation) then {
 			append string "(" to (out).
