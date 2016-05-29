@@ -200,6 +200,9 @@ static struct syntax_tree *try_parse_following_action(struct syntax_tree *firstC
 				goto action_err;
 			}
 		} else if (isspace(c)) {
+			if (c == '\n') {
+				line++;
+			}
 			if (tree->u.action.selector.length == 0 || tree->u.action.selector.data[tree->u.action.selector.length-1] != ' '
 				|| (tree->u.action.arg_count != 0 && tree->u.action.selector.length == tree->u.action.arg_indexes[tree->u.action.arg_count-1])) {
 				if (!string_add_character(&tree->u.action.selector, ' ')) {

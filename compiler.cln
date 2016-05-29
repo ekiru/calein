@@ -423,6 +423,7 @@ define procedure (C string for literal (literal)) to do {
 
 define variable (ir call kind) with initial value "ir call kind".
 define variable (ir procedure kind) with initial value "ir procedure kind".
+define variable (ir sequence kind) with initial value "ir sequence kind".
 define variable (ir variable kind) with initial value "ir variable kind".
 define variable (ir assignment kind) with initial value "ir assignment kind".
 define variable (ir literal kind) with initial value "ir literal kind".
@@ -445,6 +446,13 @@ define procedure (name of ir procedure (ir))
 	to do (first (second (ir))).
 define procedure (body of ir procedure (ir))
 	to do (second (second (ir))).
+
+define procedure (make ir sequence (items))
+	to do ((ir sequence kind), (items)).
+define procedure ((ir) is an ir sequence)
+	to do ((first (ir)) is equal to (ir sequence kind)).
+define procedure (items of ir sequence (ir))
+	to do (second (ir)).
 
 define procedure (make ir variable (name) with initial value (initial value))
 	to do ((ir variable kind), ((name), (initial value))).
@@ -543,6 +551,26 @@ define procedure (emit (ir) to (out) in (context)) to do {
 			append string ";\n}\n" to (out).
 			set (variable list) to (old variable list).
 		} else (false).
+	} else (if ((ir) is an ir sequence) then {
+		define variable (items)
+			with initial value (items of ir sequence (ir)).
+		define variable (expected sep) with initial value "".
+		if ((context) is equal to (expression context)) then {
+			set (expected sep) to ", ".
+			append string "(" to (out).
+		} else (if ((context) is equal to (statement context)) then {
+			set (expected sep) to ";\n".
+		}).
+		define variable (sep) with initial value "".
+		while (items) do {
+			append string (sep) to (out).
+			emit (first (items)) to (out) in (context).
+			set (items) to (second (items)).
+			set (sep) to (expected sep).
+		}.
+		if ((context) is equal to (expression context))
+			then (append string ")" to (out))
+			else (false).
 	} else (if ((ir) is an ir variable) then {
 		define variable (name) with initial value
 			(C ident for action (name of ir variable (ir))).
@@ -586,7 +614,7 @@ define procedure (emit (ir) to (out) in (context)) to do {
 				then (append string ";\n" to (out))
 				else (false).
 		} else (false).
-	} else (compile error "unrecognized ir kind")))))).
+	} else (compile error "unrecognized ir kind"))))))).
 }.
 
 define variable (declarations) with initial value "".
@@ -614,11 +642,19 @@ define procedure (compile (tree)) to do {
 			}.
 			make ir call (C ident for action (tree)) with arguments (reverse list (ir args)).
 		})).
+	} else (if ((tree) is a sequence) then {
+		define variable (ir items) with initial value (false).
+		define variable (items) with initial value (items of sequence (tree)).
+		while (items) do {
+			set (ir items) to ((compile (first (items))), (ir items)).
+			set (items) to (second (items)).
+		}.
+		make ir sequence (reverse list (ir items)).
 	} else (if ((tree) is a number) then {
 		make ir number (value of number (tree)).
 	} else (if ((tree) is a literal) then {
 		make ir literal (C string for literal (value of literal (tree))).
-	} else (compile error "unsupported kind of tree"))).
+	} else (compile error "unsupported kind of tree")))).
 }.
 
 define variable (continue) with initial value (true).
