@@ -683,9 +683,7 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 					then (append string ";\n" to (out))
 					else (false).
 			} else {
-				append string "value_add_reference(" to (out).
 				emit reference to variable (name) from scope (var scope) in scope (scope) to (out).
-				append string ")" to (out).
 				if ((context) is equal to (statement context))
 					then (append string ";\n" to (out))
 					else (false).
