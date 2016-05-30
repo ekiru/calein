@@ -20,6 +20,12 @@ struct value *value_add_reference(struct value *v) {
 
 bool value_remove_reference(struct value *v) {
 	if (v) {
+#ifdef CALEIN_REF_DEBUG
+		if (!v->ref_count) {
+			log_error("Tried to double free.");
+			exit(1);
+		}
+#endif
 		v->ref_count--;
 		if (!v->ref_count) {
 			switch (v->kind) {
@@ -34,7 +40,9 @@ bool value_remove_reference(struct value *v) {
 				// booleans and numbers have no extra memory and reference nothing.
 				break;
 			}
+#ifndef CALEIN_REF_DEBUG
 			free(v);
+#endif
 			allocated_objects--;
 		}
 	}
