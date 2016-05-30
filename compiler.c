@@ -1527,7 +1527,7 @@ global_SCOPEcalein_write_SPACEline_ARG(calein_definitions);
 global_SCOPEcalein_write_SPACEline_ARG(value_make_string_from_c_string("int main() {"));
 global_SCOPEcalein_write_SPACEline_ARG(calein_initializers);
 global_SCOPEcalein_write_ARG(calein_main);
-global_SCOPEcalein_write_SPACEline_ARG(value_make_string_from_c_string("return 0;"));
+global_SCOPEcalein_write_SPACEline_ARG(value_make_string_from_c_string("return value_allocated_object_count();"));
 global_SCOPEcalein_write_SPACEline_ARG(value_make_string_from_c_string("}"));
-return 0;
+return value_allocated_object_count();
 }

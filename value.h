@@ -15,6 +15,7 @@ enum value_kind {
 
 struct value {
 	enum value_kind kind;
+	uint32_t ref_count;
 	union {
 		struct string string;
 		bool boolean;
@@ -22,6 +23,10 @@ struct value {
 		struct value *pair[2];
 	} u;
 };
+
+size_t value_allocated_object_count(void);
+bool value_add_reference(struct value *v);
+bool value_remove_reference(struct value *v);
 
 struct value *value_make_string(const struct string *s);
 struct value *value_make_string_from_c_string(const char *s);

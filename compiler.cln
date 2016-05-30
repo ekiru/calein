@@ -954,5 +954,5 @@ write line (definitions).
 write line "int main() {".
 write line (initializers).
 write (main).
-write line "return 0;".
+write line "return value_allocated_object_count();".
 write line "}".

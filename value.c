@@ -5,6 +5,37 @@
 
 #include "err.h"
 
+static size_t allocated_objects = 0;
+
+size_t value_allocated_object_count(void) {
+	return allocated_objects;
+}
+
+bool value_add_reference(struct value *v) {
+	v->ref_count++;
+	return true;
+}
+
+bool value_remove_reference(struct value *v) {
+	v->ref_count--;
+	if (!v->ref_count) {
+		switch (v->kind) {
+		case value_kind_string:
+			string_finish(&v->u.string);
+			break;
+		case value_kind_pair:
+			value_remove_reference(v->u.pair[0]);
+			value_remove_reference(v->u.pair[1]);
+			break;
+		default:
+			// booleans and numbers have no extra memory and reference nothing.
+			break;
+		}
+		free(v);
+		allocated_objects--;
+	}
+	return true;
+}
 
 static struct value *allocate(enum value_kind kind) {
 	struct value *res = calloc(1, sizeof *res);
@@ -13,6 +44,8 @@ static struct value *allocate(enum value_kind kind) {
 		exit(1);
 	}
 	res->kind = kind;
+	res->ref_count = 1;
+	allocated_objects++;
 	return res;
 }
 
