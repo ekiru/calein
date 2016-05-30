@@ -1796,9 +1796,7 @@ global_SCOPEcalein_write_SPACEline_ARG(value_add_reference(value_make_string_fro
 global_SCOPEcalein_write_SPACEline_ARG(value_add_reference(value_make_string_from_c_string("struct value *tmp_for_derefs = 0;")));
 global_SCOPEcalein_write_SPACEline_ARG(value_add_reference(calein_initializers));
 global_SCOPEcalein_write_ARG(value_add_reference(calein_main));
-global_SCOPEcalein_write_SPACEline_ARG(value_add_reference(value_make_string_from_c_string("printf(\"%d\\n\", value_allocated_object_count());")));
-global_SCOPEcalein_write_SPACEline_ARG(value_add_reference(value_make_string_from_c_string("return value_allocated_object_count();")));
+global_SCOPEcalein_write_SPACEline_ARG(value_add_reference(value_make_string_from_c_string("return 0;")));
 global_SCOPEcalein_write_SPACEline_ARG(value_add_reference(value_make_string_from_c_string("}")));
-printf("%d\n", value_allocated_object_count());
-return value_allocated_object_count();
+return 0;
 }

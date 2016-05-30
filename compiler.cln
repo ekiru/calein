@@ -975,6 +975,5 @@ write line "int main() {".
 write line "struct value *tmp_for_derefs = 0;".
 write line (initializers).
 write (main).
-write line "printf(\"%d\\n\", value_allocated_object_count());".
-write line "return value_allocated_object_count();".
+write line "return 0;".
 write line "}".
