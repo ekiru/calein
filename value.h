@@ -15,6 +15,7 @@ enum value_kind {
 
 struct value {
 	enum value_kind kind;
+	bool floating;
 	uint32_t ref_count;
 	union {
 		struct string string;
@@ -34,7 +35,7 @@ struct string *value_string_value(struct value *v);
 
 struct value *value_make_boolean(bool b);
 bool value_boolean_is_true(struct value *v);
-bool value_boolean_is_true_remove_reference(struct value *v);
+bool value_boolean_is_true_remove_floating_reference(struct value *v);
 
 struct value *value_make_number(int64_t i);
 int64_t value_number_value(struct value *v);

@@ -753,6 +753,7 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 					set (args) to (second (args)).
 				}.
 
+				append string "struct value *tmp_for_derefs = 0;\n" to (out).
 				append string "struct value *result = " to (out).
 				emit (body of ir procedure (ir)) to (out) in (expression context) with scope (proc name).
 				append string ";\nvalue_add_reference(result);\n" to (out).
@@ -795,7 +796,7 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 			else (false).
 	} else (if ((ir) is an ir if) then {
 		if ((context) is equal to (expression context)) then {
-			append string "(value_boolean_is_true_remove_reference(" to (out).
+			append string "(value_boolean_is_true_remove_floating_reference(" to (out).
 			emit (condition of ir if (ir)) to (out) in (expression context) with scope (scope).
 			append string ") ? (" to (out).
 			emit (then of ir if (ir)) to (out) in (context) with scope (scope).
@@ -803,7 +804,7 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 			emit (else of ir if (ir)) to (out) in (context) with scope (scope).
 			append string "))" to (out).
 		} else (if ((context) is equal to (statement context)) then {
-			append string "if (value_boolean_is_true_remove_reference(" to (out).
+			append string "if (value_boolean_is_true_remove_floating_reference(" to (out).
 			emit (condition of ir if (ir)) to (out) in (expression context) with scope (scope).
 			append string ")) {\n" to (out).
 			emit (then of ir if (ir)) to (out) in (statement context) with scope (scope).
@@ -817,7 +818,7 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 		}).
 	} else (if ((ir) is an ir while) then {
 		if ((context) is equal to (statement context)) then {
-			append string "while (value_boolean_is_true_remove_reference(" to (out).
+			append string "while (value_boolean_is_true_remove_floating_reference(" to (out).
 			emit (condition of ir while (ir)) to (out) in (expression context) with scope (scope).
 			append string ")) {\n" to (out).
 			emit (body of ir while (ir)) to (out) in (statement context) with scope (scope).
@@ -863,11 +864,17 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 		set (var scope) to (lookup (name) in (variable list)).
 		if (var scope) then {
 			if ((context) is an evaluation) then {
-				append string "(" to (out).
+				append string "(tmp_for_derefs = " to (out).
 				emit reference to variable (name)
 					from scope (var scope) in scope (scope) to (out).
-				append string " = " to (out).
+				append string ", " to (out).
+				emit reference to variable (name)
+					from scope (var scope) in scope (scope) to (out).
+				append string " = value_add_reference(" to (out).
 				emit (value of ir assignment (ir)) to (out) in (expression context) with scope (scope).
+				append string "), value_remove_reference(tmp_for_derefs)," to (out).
+				emit reference to variable (name)
+					from scope (var scope) in scope (scope) to (out).
 				append string ")" to (out).
 				if ((context) is equal to (statement context))
 					then (append string ";\n" to (out))
@@ -967,6 +974,7 @@ write line "#include \"caleinrtl.inc.c\"".
 write line (declarations).
 write line (definitions).
 write line "int main() {".
+write line "struct value *tmp_for_derefs = 0;".
 write line (initializers).
 write (main).
 write line "printf(\"%d\\n\", value_allocated_object_count());".

@@ -13,7 +13,11 @@ size_t value_allocated_object_count(void) {
 
 struct value *value_add_reference(struct value *v) {
 	if (v) {
-		v->ref_count++;
+		if (v->floating) {
+			v->floating = false;
+		} else {
+			v->ref_count++;
+		}
 	}
 	return v;
 }
@@ -26,7 +30,11 @@ bool value_remove_reference(struct value *v) {
 			exit(1);
 		}
 #endif
-		v->ref_count--;
+		if (v->floating) {
+			v->ref_count = 0;
+		} else {
+			v->ref_count--;
+		}
 		if (!v->ref_count) {
 			switch (v->kind) {
 			case value_kind_string:
@@ -49,6 +57,15 @@ bool value_remove_reference(struct value *v) {
 	return true;
 }
 
+static void check_value(struct value *v) {
+#ifdef CALEIN_REF_DEBUG
+	if (!v->ref_count) {
+		log_error("Use after free.");
+		exit(1);
+	}
+#endif
+}
+
 static struct value *allocate(enum value_kind kind) {
 	struct value *res = calloc(1, sizeof *res);
 	if (!res) {
@@ -57,6 +74,7 @@ static struct value *allocate(enum value_kind kind) {
 	}
 	res->kind = kind;
 	res->ref_count = 1;
+	res->floating = true;
 	allocated_objects++;
 	return res;
 }
@@ -95,12 +113,16 @@ struct value *value_make_boolean(bool b) {
 }
 
 bool value_boolean_is_true(struct value *v) {
+	check_value(v);
 	return v && (v->kind != value_kind_boolean || v->u.boolean);
 }
 
-bool value_boolean_is_true_remove_reference(struct value *v) {
+bool value_boolean_is_true_remove_floating_reference(struct value *v) {
+	check_value(v);
 	bool result = value_boolean_is_true(v);
-	value_remove_reference(v);
+	if (v->floating) {
+		value_remove_reference(v);
+	}
 	return result;
 }
 
@@ -111,6 +133,7 @@ struct value *value_make_number(int64_t i) {
 }
 
 int64_t value_number_value(struct value *v) {
+	check_value(v);
 	if (!v || v->kind != value_kind_number) {
 		log_error("Tried to use non-number as number");
 		exit(1);
@@ -119,6 +142,8 @@ int64_t value_number_value(struct value *v) {
 }
 
 struct value *value_make_pair(struct value *x, struct value *y) {
+	check_value(x);
+	check_value(y);
 	value_add_reference(x);
 	value_add_reference(y);
 	struct value *p = allocate(value_kind_pair);
@@ -128,6 +153,7 @@ struct value *value_make_pair(struct value *x, struct value *y) {
 }
 
 struct value *value_pair_first(struct value *pair) {
+	check_value(pair);
 	if (pair && pair->kind == value_kind_pair) {
 		return pair->u.pair[0];
 	} else {
@@ -137,6 +163,7 @@ struct value *value_pair_first(struct value *pair) {
 }
 
 struct value *value_pair_second(struct value *pair) {
+	check_value(pair);
 	if (pair && pair->kind == value_kind_pair) {
 		return pair->u.pair[1];
 	} else {
@@ -146,6 +173,7 @@ struct value *value_pair_second(struct value *pair) {
 }
 
 void value_write(struct value *v) {
+	check_value(v);
 	switch (v->kind) {
 	case value_kind_string:
 		printf("%.*s", (int) v->u.string.length, v->u.string.data);
@@ -171,6 +199,8 @@ void value_write(struct value *v) {
 }
 
 bool value_is_equal_to(struct value *x, struct value *y) {
+	check_value(x);
+	check_value(y);
 	if (x->kind == y->kind) {
 		switch (x->kind) {
 		case value_kind_boolean:
