@@ -967,5 +967,6 @@ write line (definitions).
 write line "int main() {".
 write line (initializers).
 write (main).
+write line "printf(\"%d\\n\", value_allocated_object_count());".
 write line "return value_allocated_object_count();".
 write line "}".

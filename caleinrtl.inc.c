@@ -23,11 +23,16 @@ static struct value *global_SCOPEcalein_second_ARG(struct value *p) {
 }
 
 static struct value *global_SCOPEcalein_not_ARG(struct value *b) {
-	return value_make_boolean(!value_boolean_is_true(b));
+	struct value *res = value_make_boolean(!value_boolean_is_true(b));
+	value_remove_reference(b);
+	return res;
 }
 
 static struct value *global_SCOPEcalein__SPACE_ARGis_SPACEequal_SPACEto_ARG(struct value *x, struct value *y) {
-	return value_make_boolean(value_is_equal_to(x, y));
+	struct value *res = value_make_boolean(value_is_equal_to(x, y));
+	value_remove_reference(x);
+	value_remove_reference(y);
+	return res;
 }
 
 static struct value *global_SCOPEcalein_append_SPACEcharacter_SPACE_SPACE_ARGto_ARG(struct value *c, struct value *s) {
@@ -35,16 +40,21 @@ static struct value *global_SCOPEcalein_append_SPACEcharacter_SPACE_SPACE_ARGto_
 		log_error("Failed to append character");
 		exit(1);
 	}
+	value_remove_reference(c);
+	value_remove_reference(s);
 	return 0;
 }
 
 static struct value *global_SCOPEcalein_trim_SPACEright_ARG(struct value *s) {
 	string_trim_right(value_string_value(s));
+	value_remove_reference(s);
 	return s;
 }
 
 static struct value *global_SCOPEcalein_length_ARG(struct value *s) {
-	return value_make_number(value_string_value(s)->length);
+	struct value *res = value_make_number(value_string_value(s)->length);
+	value_remove_reference(s);
+	return res;
 }
 
 static struct value *global_SCOPEcalein_character_SPACEat_SPACE_SPACE_ARGof_ARG(struct value *iv, struct value *sv) {
@@ -54,11 +64,15 @@ static struct value *global_SCOPEcalein_character_SPACEat_SPACE_SPACE_ARGof_ARG(
 		log_error("Index out of bounds for string");
 		return 0;
 	}
-	return value_make_number(s->data[i]);
+	struct value *res = value_make_number(s->data[i]);
+	value_remove_reference(iv);
+	value_remove_reference(sv);
+	return res;
 }
 
 static struct value *global_SCOPEcalein_write_ARG(struct value *s) {
 	value_write(s);
+	value_remove_reference(s);
 	return 0;
 };
 
@@ -66,6 +80,7 @@ static struct value *global_SCOPEcalein_write_SPACEline_ARG(struct value *s) {
 	value_write(s);
 	puts("");
 	fflush(stdout);
+	value_remove_reference(s);
 	return 0;
 };
 
@@ -80,7 +95,10 @@ static struct value *global_SCOPEcalein_read_SPACEcharacter(void) {
 
 #define NUMBER_BINOP(name, op) \
 	static struct value *global_SCOPEcalein__SPACE_ARG ## name ## _ARG(struct value *x, struct value *y) { \
-		return value_make_number(value_number_value(x) op value_number_value(y)); \
+		struct value *res = value_make_number(value_number_value(x) op value_number_value(y)); \
+		value_remove_reference(x); \
+		value_remove_reference(y); \
+		return res; \
 	}
 
 NUMBER_BINOP(_PLUS, +)
