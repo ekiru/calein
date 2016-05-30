@@ -9,11 +9,17 @@ static struct value *global_SCOPEcalein__COMMA_ARG_ARG(struct value *x, struct v
 }
 
 static struct value *global_SCOPEcalein_first_ARG(struct value *p) {
-	return value_pair_first(p);
+	struct value *res = value_pair_first(p);
+	value_add_reference(res);
+	value_remove_reference(p);
+	return res;
 }
 
 static struct value *global_SCOPEcalein_second_ARG(struct value *p) {
-	return value_pair_second(p);
+	struct value *res = value_pair_second(p);
+	value_add_reference(res);
+	value_remove_reference(p);
+	return res;
 }
 
 static struct value *global_SCOPEcalein_not_ARG(struct value *b) {

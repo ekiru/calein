@@ -25,7 +25,7 @@ struct value {
 };
 
 size_t value_allocated_object_count(void);
-bool value_add_reference(struct value *v);
+struct value *value_add_reference(struct value *v);
 bool value_remove_reference(struct value *v);
 
 struct value *value_make_string(const struct string *s);

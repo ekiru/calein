@@ -672,7 +672,9 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 				} else (false)) else (false).
 				while (args) do {
 					append string (sep) to (out).
+					append string "value_add_reference(" to (out).
 					emit (first (args)) to (out) in (expression context) with scope (scope).
+					append string ")" to (out).
 					set (sep) to ",".
 					set (args) to (second (args)).
 				}.
@@ -749,10 +751,21 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 					set (args) to (second (args)).
 				}.
 
-				append string "return " to (out).
+				append string "struct value *result = " to (out).
 				emit (body of ir procedure (ir)) to (out) in (expression context) with scope (proc name).
-				append string ";\n}\n" to (out).
+				append string ";\nvalue_add_reference(result);\n" to (out).
+				define variable (vars) with initial value (variable list).
+				while (vars) do {
+					if ((second (first (vars))) is equal to (proc name)) then {
+						append string "value_remove_reference(" to (out).
+						emit reference to variable (first (first (vars)))
+							from scope (proc name) in scope (proc name) to (out).
+						append string ");" to (out).
+						set (vars) to (second (vars)).
+					} else (set (vars) to (false)).
 				}.
+				append string "return result;\n}\n" to (out).
+			}.
 			set (variable list) to (old variable list).
 		} else (false).
 		set (function list) to (old function list).
@@ -828,16 +841,16 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 		} else (if ((context) is equal to (statement context)) then {
 			emit reference to variable (C ident for action (name of ir assignment (ir)))
 				from scope (scope) in scope (scope) to (out).
-			append string " = " to (out).
+			append string " = value_add_reference(" to (out).
 			emit (initial value of ir variable (ir)) to (out) in (expression context) with scope (scope).
-			append string ";\n" to (out).
+			append string ");\n" to (out).
 		} else (if ((context) is equal to (expression context)) then {
 			append string "(" to (out).
 			emit reference to variable (C ident for action (name of ir assignment (ir)))
 				from scope (scope) in scope (scope) to (out).
-			append string " = " to (out).
+			append string " = value_add_reference(" to (out).
 			emit (initial value of ir variable (ir)) to (out) in (expression context) with scope (scope).
-			append string ")" to (out).
+			append string "))" to (out).
 		} else (if ((context) is equal to (initializer context)) then {
 			emit reference to variable (C ident for action (name of ir assignment (ir)))
 				from scope (scope) in scope (scope) to (out).

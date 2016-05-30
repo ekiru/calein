@@ -11,28 +11,32 @@ size_t value_allocated_object_count(void) {
 	return allocated_objects;
 }
 
-bool value_add_reference(struct value *v) {
-	v->ref_count++;
-	return true;
+struct value *value_add_reference(struct value *v) {
+	if (v) {
+		v->ref_count++;
+	}
+	return v;
 }
 
 bool value_remove_reference(struct value *v) {
-	v->ref_count--;
-	if (!v->ref_count) {
-		switch (v->kind) {
-		case value_kind_string:
-			string_finish(&v->u.string);
-			break;
-		case value_kind_pair:
-			value_remove_reference(v->u.pair[0]);
-			value_remove_reference(v->u.pair[1]);
-			break;
-		default:
-			// booleans and numbers have no extra memory and reference nothing.
-			break;
+	if (v) {
+		v->ref_count--;
+		if (!v->ref_count) {
+			switch (v->kind) {
+			case value_kind_string:
+				string_finish(&v->u.string);
+				break;
+			case value_kind_pair:
+				value_remove_reference(v->u.pair[0]);
+				value_remove_reference(v->u.pair[1]);
+				break;
+			default:
+				// booleans and numbers have no extra memory and reference nothing.
+				break;
+			}
+			free(v);
+			allocated_objects--;
 		}
-		free(v);
-		allocated_objects--;
 	}
 	return true;
 }
@@ -101,6 +105,8 @@ int64_t value_number_value(struct value *v) {
 }
 
 struct value *value_make_pair(struct value *x, struct value *y) {
+	value_add_reference(x);
+	value_add_reference(y);
 	struct value *p = allocate(value_kind_pair);
 	p->u.pair[0] = x;
 	p->u.pair[1] = y;
