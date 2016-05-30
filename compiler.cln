@@ -683,7 +683,9 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 					then (append string ";\n" to (out))
 					else (false).
 			} else {
+				append string "value_add_reference(" to (out).
 				emit reference to variable (name) from scope (var scope) in scope (scope) to (out).
+				append string ")" to (out).
 				if ((context) is equal to (statement context))
 					then (append string ";\n" to (out))
 					else (false).
@@ -793,7 +795,7 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 			else (false).
 	} else (if ((ir) is an ir if) then {
 		if ((context) is equal to (expression context)) then {
-			append string "(value_boolean_is_true(" to (out).
+			append string "(value_boolean_is_true_remove_reference(" to (out).
 			emit (condition of ir if (ir)) to (out) in (expression context) with scope (scope).
 			append string ") ? (" to (out).
 			emit (then of ir if (ir)) to (out) in (context) with scope (scope).
@@ -801,7 +803,7 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 			emit (else of ir if (ir)) to (out) in (context) with scope (scope).
 			append string "))" to (out).
 		} else (if ((context) is equal to (statement context)) then {
-			append string "if (value_boolean_is_true(" to (out).
+			append string "if (value_boolean_is_true_remove_reference(" to (out).
 			emit (condition of ir if (ir)) to (out) in (expression context) with scope (scope).
 			append string ")) {\n" to (out).
 			emit (then of ir if (ir)) to (out) in (statement context) with scope (scope).
@@ -815,7 +817,7 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 		}).
 	} else (if ((ir) is an ir while) then {
 		if ((context) is equal to (statement context)) then {
-			append string "while (value_boolean_is_true(" to (out).
+			append string "while (value_boolean_is_true_remove_reference(" to (out).
 			emit (condition of ir while (ir)) to (out) in (expression context) with scope (scope).
 			append string ")) {\n" to (out).
 			emit (body of ir while (ir)) to (out) in (statement context) with scope (scope).

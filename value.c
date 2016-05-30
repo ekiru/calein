@@ -98,6 +98,12 @@ bool value_boolean_is_true(struct value *v) {
 	return v && (v->kind != value_kind_boolean || v->u.boolean);
 }
 
+bool value_boolean_is_true_remove_reference(struct value *v) {
+	bool result = value_boolean_is_true(v);
+	value_remove_reference(v);
+	return result;
+}
+
 struct value *value_make_number(int64_t i) {
 	struct value *res = allocate(value_kind_number);
 	res->u.number = i;
