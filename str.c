@@ -56,7 +56,7 @@ bool string_add_character(struct string *s, char c) {
 			s->data = 0;
 			new_size = 10;
 		}
-		char *new_data = realloc(s->data, new_size);
+		char *new_data = realloc(s->data, new_size + 1);
 		if (!new_data) {
 			return false;
 		}
@@ -65,6 +65,7 @@ bool string_add_character(struct string *s, char c) {
 	}
 	s->data[s->length] = c;
 	s->length++;
+	s->data[s->length] = 0;
 	return true;
 }
 
