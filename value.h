@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include "str.h"
 
@@ -11,6 +12,7 @@ enum value_kind {
 	value_kind_boolean,
 	value_kind_number,
 	value_kind_pair,
+	value_kind_file,
 };
 
 struct value {
@@ -22,6 +24,7 @@ struct value {
 		bool boolean;
 		int64_t number;
 		struct value *pair[2];
+		FILE *file;
 	} u;
 };
 
@@ -43,6 +46,9 @@ int64_t value_number_value(struct value *v);
 struct value *value_make_pair(struct value *x, struct value *y);
 struct value *value_pair_first(struct value *pair);
 struct value *value_pair_second(struct value *pair);
+
+struct value *value_make_file(FILE *f);
+FILE *value_file_value(struct value *f);
 
 void value_write(struct value *v);
 

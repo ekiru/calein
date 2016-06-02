@@ -84,13 +84,29 @@ static struct value *global_SCOPEcalein_write_SPACEline_ARG(struct value *s) {
 	return 0;
 };
 
-static struct value *global_SCOPEcalein_read_SPACEcharacter(void) {
-	int c = getchar();
+static struct value *char_of_int(int c) {
 	if (c == EOF ) {
 		return value_make_boolean(false);
 	} else {
 		return value_make_number(c);
 	}
+}
+
+static struct value *global_SCOPEcalein_read_SPACEcharacter(void) {
+	return char_of_int(getchar());
+}
+
+static struct value *global_SCOPEcalein_read_SPACEcharacter_SPACEfrom_ARG(struct value *f) {
+	return char_of_int(getc(value_file_value(f)));
+}
+
+static struct value *global_SCOPEcalein_open_SPACEfile_SPACE_SPACE_ARGfor_SPACEreading(struct value *name) {
+	return value_make_file(fopen(value_string_value(name)->data, "r"));
+}
+
+static struct value *global_SCOPEcalein_close_SPACEfile_ARG(struct value *f) {
+	fclose(value_file_value(f));
+	return 0;
 }
 
 #define NUMBER_BINOP(name, op) \

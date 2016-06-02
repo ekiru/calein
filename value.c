@@ -44,6 +44,11 @@ bool value_remove_reference(struct value *v) {
 				value_remove_reference(v->u.pair[0]);
 				value_remove_reference(v->u.pair[1]);
 				break;
+			case value_kind_file:
+				if (v->u.file) {
+					fclose(v->u.file);
+					v->u.file = 0;
+				}
 			default:
 				// booleans and numbers have no extra memory and reference nothing.
 				break;
@@ -172,6 +177,20 @@ struct value *value_pair_second(struct value *pair) {
 	}
 }
 
+struct value *value_make_file(FILE *f) {
+	struct value *v = allocate(value_kind_file);
+	v->u.file = f;
+	return v;
+}
+
+FILE *value_file_value(struct value *f) {
+	if (!f || f->kind != value_kind_file) {
+		log_error("Attempted to interpret non-file as file.");
+		exit(1);
+	}
+	return f->u.file;
+}
+
 void value_write(struct value *v) {
 	check_value(v);
 	switch (v->kind) {
@@ -192,6 +211,9 @@ void value_write(struct value *v) {
 		value_write(v->u.pair[0]);
 		printf(", ");
 		value_write(v->u.pair[1]);
+		break;
+	case value_kind_file:
+		printf("file");
 		break;
 	default:
 		log_error("Unrecognized value kind %d", v->kind);
@@ -216,6 +238,8 @@ bool value_is_equal_to(struct value *x, struct value *y) {
 			return value_is_equal_to(x->u.pair[0], y->u.pair[0])
 				&& value_is_equal_to(x->u.pair[1], y->u.pair[1]);
 			break;
+		case value_kind_file:
+			return x->u.file == y->u.file;
 		default:
 			log_error("Unrecognized kind %d in (x) is equal to (y).", x->kind);
 			return false;

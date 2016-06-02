@@ -1,0 +1,16 @@
+define variable (f)
+	with initial value (open file "examples/files.cln" for reading).
+
+define variable (contents) with initial value "".
+
+define variable (c) with initial value #0.
+while {
+	set (c) to (read character from (f)).
+	c.
+} do {
+	append character (c) to (contents).
+}.
+
+close file (f).
+
+write (contents).
