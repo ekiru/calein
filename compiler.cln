@@ -916,7 +916,9 @@ define procedure (compile (tree)) to do {
 	if ((tree) is an action) then {
 		define variable (ir args) with initial value (false).
 		define variable (args) with initial value (arguments of action (tree)).
-		if ((name of action (tree)) is equal to "define procedure  to do")
+		if ((name of action (tree)) is equal to "note")
+			then (false)
+		else (if ((name of action (tree)) is equal to "define procedure  to do")
 			then (make ir procedure (second ((args) at #0))
 				with body (compile (second ((args) at #1))))
 		else (if ((name of action (tree)) is equal to "define variable  with initial value")
@@ -938,7 +940,7 @@ define procedure (compile (tree)) to do {
 				set (args) to (second (args)).
 			}.
 			make ir call (C ident for action (tree)) with arguments (reverse list (ir args)).
-		})))).
+		}))))).
 	} else (if ((tree) is a sequence) then {
 		define variable (ir items) with initial value (false).
 		define variable (items) with initial value (items of sequence (tree)).
@@ -961,10 +963,12 @@ while (continue) do {
 	set (tree) to (parse (true)).
 	if (tree) then {
 		set (ir) to (compile (tree)).	
-		emit (ir) to (declarations) in (declaration context) with scope (global scope).
-		emit (ir) to (definitions) in (definition context) with scope (global scope).
-		emit (ir) to (initializers) in (initializer context) with scope (global scope).
-		emit (ir) to (main) in (statement context) with scope (global scope).
+		if (ir) then {
+			emit (ir) to (declarations) in (declaration context) with scope (global scope).
+			emit (ir) to (definitions) in (definition context) with scope (global scope).
+			emit (ir) to (initializers) in (initializer context) with scope (global scope).
+			emit (ir) to (main) in (statement context) with scope (global scope).
+		} else (false).
 	} else (set (continue) to (false)).
 }.
 
