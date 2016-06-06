@@ -1,0 +1,2 @@
+define procedure (foo in module)
+	to do (write line "Hello world".).

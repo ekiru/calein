@@ -481,6 +481,7 @@ define variable (ir variable kind) with initial value "ir variable kind".
 define variable (ir assignment kind) with initial value "ir assignment kind".
 define variable (ir literal kind) with initial value "ir literal kind".
 define variable (ir number kind) with initial value "ir number kind".
+define variable (ir import kind) with initial value "ir import kind".
 
 define procedure (make ir call (name) with arguments (args))
 	to do ((ir call kind), ((name), (args))).
@@ -557,6 +558,13 @@ define procedure (make ir number (number))
 define procedure ((ir) is an ir number)
 	to do ((first (ir)) is equal to (ir number kind)).
 define procedure (value of ir number (ir))
+	to do (second (ir)).
+
+define procedure (make ir import (import))
+	to do ((ir import kind), (import)).
+define procedure ((ir) is an ir import)
+	to do ((first (ir)) is equal to (ir import kind)).
+define procedure (ir of ir import (ir))
 	to do (second (ir)).
 
 define variable (expression context) with initial value "expression context".
@@ -926,7 +934,15 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 				then (append string ";\n" to (out))
 				else (false).
 		} else (false).
-	} else (compile error "unrecognized ir kind"))))))))).
+	} else (if ((ir) is an ir import) then {
+		if ((scope) is equal to (global scope)) then {
+			define variable (import ir) with initial value (ir of ir import (ir)).
+			while (import ir) do {
+				emit (first (import ir)) to (out) in (context) with scope (scope).
+				set (import ir) to (second (import ir)).
+			}.
+		} else (compile error "Can only import at top level.").
+	} else (compile error "unrecognized ir kind")))))))))).
 }.
 
 define procedure (compile (tree)) to do {
@@ -951,13 +967,23 @@ define procedure (compile (tree)) to do {
 		else (if ((name of action (tree)) is equal to "while  do")
 			then (make ir while (compile (second ((args) at #0)))
 				with body (compile (second ((args) at #1))))
-		else {
+		else (if (((name of action (tree)) is equal to "import") and (args)) then {
+			if ((second ((args) at #0)) is a literal) then {
+				define variable (file name) with initial value 
+					(concat (value of literal (second ((args) at #0))) and ".cln").
+				define variable (f) with initial value (open file (file name) for reading).
+				define variable (import) with initial value
+					(make ir import (ir of syntax trees (parse file (f)))).
+				close file (f).
+				import.
+			} else (compile error "import takes only literal arguments.").
+		} else {
 			while (args) do {
 				set (ir args) to ((compile (second (first (args)))), (ir args)).
 				set (args) to (second (args)).
 			}.
 			make ir call (C ident for action (tree)) with arguments (reverse list (ir args)).
-		}))))).
+		})))))).
 	} else (if ((tree) is a sequence) then {
 		define variable (ir items) with initial value (false).
 		define variable (items) with initial value (items of sequence (tree)).
@@ -973,6 +999,15 @@ define procedure (compile (tree)) to do {
 	} else (compile error "unsupported kind of tree")))).
 }.
 
+define procedure (ir of syntax trees (trees)) to do {
+	define variable (irs) with initial value (false).
+	while (trees) do {
+		set (irs) to ((compile (first (trees))), (irs)).
+		set (trees) to (second (trees)).
+	}.
+	reverse list (irs).
+}.
+
 define procedure (compile file (f)) to do {
 	define variable (declarations) with initial value "".
 	define variable (definitions) with initial value "".
@@ -980,17 +1015,17 @@ define procedure (compile file (f)) to do {
 	define variable (main) with initial value "".
 
 	define variable (ir) with initial value (false).
-	define variable (trees) with initial value (parse file (f)).
+	define variable (irs) with initial value (ir of syntax trees (parse file (f))).
 
-	while (trees) do {
-		set (ir) to (compile (first (trees))).	
+	while (irs) do {
+		set (ir) to (first (irs)).	
 		if (ir) then {
 			emit (ir) to (declarations) in (declaration context) with scope (global scope).
 			emit (ir) to (definitions) in (definition context) with scope (global scope).
 			emit (ir) to (initializers) in (initializer context) with scope (global scope).
 			emit (ir) to (main) in (statement context) with scope (global scope).
 		} else (false).
-		set (trees) to (second (trees)).
+		set (irs) to (second (irs)).
 	}.
 
 	write line "#include \"caleinrtl.inc.c\"".
@@ -1003,7 +1038,7 @@ define variable (main module)
 with initial value (compile file (standard input)).
 
 write line "int main() {".
-write line "struct value *tmp_for_derefs = 0;".
+write line "struct value *tmp_for_derefs = 0;\n".
 write line (first (main module)).
 write (second (main module)).
 write line "return 0;".
