@@ -996,12 +996,15 @@ define procedure (compile file (f)) to do {
 	write line "#include \"caleinrtl.inc.c\"".
 	write line (declarations).
 	write line (definitions).
-	write line "int main() {".
-	write line "struct value *tmp_for_derefs = 0;".
-	write line (initializers).
-	write (main).
-	write line "return 0;".
-	write line "}".
+	(initializers), (main).
 }.
 
-compile file (standard input).
+define variable (main module)
+with initial value (compile file (standard input)).
+
+write line "int main() {".
+write line "struct value *tmp_for_derefs = 0;".
+write line (first (main module)).
+write (second (main module)).
+write line "return 0;".
+write line "}".
