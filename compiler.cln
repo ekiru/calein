@@ -84,13 +84,14 @@ define procedure ((c) is whitespace) to do
 define variable (line number) with initial value #1.
 define variable (column number) with initial value #1.
 
+define variable (file to read from) with initial value (standard input).
 define variable (ungotten character) with initial value (false).
 define procedure (get character) to do {
 	define variable (tmp) with initial value (false).
 	if (ungotten character) then {
 		set (tmp) to (ungotten character).
 		set (ungotten character) to (false).
-	} else (set (tmp) to (read character)).
+	} else (set (tmp) to (read character from (file to read from))).
 	if ((tmp) is equal to (new line)) then {
 		set (line number) to ((line number) + #1).
 		set (column number) to #1.
@@ -370,6 +371,27 @@ define procedure (parse (at start of expression)) to do {
 	}.
 	tree.
 }.
+
+define procedure (parse file (f)) to do {
+	define variable (old file) with initial value (file to read from).
+	define variable (old line number) with initial value (line number).
+	define variable (old column number) with initial value (column number).
+	define variable (old ungotten) with initial value (ungotten character).
+	define variable (reversed syntax trees) with initial value (false).
+	define variable (tree) with initial value (false).
+	set (file to read from) to (f).
+	while {
+		set (tree) to (parse (true)).
+		tree.
+	} do {
+		set (reversed syntax trees) to ((tree), (reversed syntax trees)).
+	}.
+	set (file to read from) to (old file).
+	set (line number) to (old line number).
+	set (column number) to (old column number).
+	set (ungotten character) to (old ungotten).
+	reverse list (reversed syntax trees).
+}.	
 
 define procedure (append string (t) to (s)) to do {
 	define variable (i) with initial value #0.
@@ -956,20 +978,18 @@ define procedure (compile (tree)) to do {
 	} else (compile error "unsupported kind of tree")))).
 }.
 
-define variable (tree) with initial value (false).
 define variable (ir) with initial value (false).
+define variable (trees) with initial value (parse file (standard input)).
 
-while (continue) do {
-	set (tree) to (parse (true)).
-	if (tree) then {
-		set (ir) to (compile (tree)).	
-		if (ir) then {
-			emit (ir) to (declarations) in (declaration context) with scope (global scope).
-			emit (ir) to (definitions) in (definition context) with scope (global scope).
-			emit (ir) to (initializers) in (initializer context) with scope (global scope).
-			emit (ir) to (main) in (statement context) with scope (global scope).
-		} else (false).
-	} else (set (continue) to (false)).
+while (trees) do {
+	set (ir) to (compile (first (trees))).	
+	if (ir) then {
+		emit (ir) to (declarations) in (declaration context) with scope (global scope).
+		emit (ir) to (definitions) in (definition context) with scope (global scope).
+		emit (ir) to (initializers) in (initializer context) with scope (global scope).
+		emit (ir) to (main) in (statement context) with scope (global scope).
+	} else (false).
+	set (trees) to (second (trees)).
 }.
 
 write line "#include \"caleinrtl.inc.c\"".

@@ -109,6 +109,14 @@ static struct value *global_SCOPEcalein_close_SPACEfile_ARG(struct value *f) {
 	return 0;
 }
 
+static struct value *global_SCOPEcalein_standard_SPACEinput(void) {
+	static struct value *stdin_value = 0;
+	if (!stdin_value) {
+		stdin_value = value_make_file(stdin);
+	}
+	return value_add_reference(stdin_value);
+}
+
 #define NUMBER_BINOP(name, op) \
 	static struct value *global_SCOPEcalein__SPACE_ARG ## name ## _ARG(struct value *x, struct value *y) { \
 		struct value *res = value_make_number(value_number_value(x) op value_number_value(y)); \
