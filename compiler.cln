@@ -929,11 +929,6 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 	} else (compile error "unrecognized ir kind"))))))))).
 }.
 
-define variable (declarations) with initial value "".
-define variable (definitions) with initial value "".
-define variable (initializers) with initial value "".
-define variable (main) with initial value "".
-
 define procedure (compile (tree)) to do {
 	if ((tree) is an action) then {
 		define variable (ir args) with initial value (false).
@@ -978,26 +973,35 @@ define procedure (compile (tree)) to do {
 	} else (compile error "unsupported kind of tree")))).
 }.
 
-define variable (ir) with initial value (false).
-define variable (trees) with initial value (parse file (standard input)).
+define procedure (compile file (f)) to do {
+	define variable (declarations) with initial value "".
+	define variable (definitions) with initial value "".
+	define variable (initializers) with initial value "".
+	define variable (main) with initial value "".
 
-while (trees) do {
-	set (ir) to (compile (first (trees))).	
-	if (ir) then {
-		emit (ir) to (declarations) in (declaration context) with scope (global scope).
-		emit (ir) to (definitions) in (definition context) with scope (global scope).
-		emit (ir) to (initializers) in (initializer context) with scope (global scope).
-		emit (ir) to (main) in (statement context) with scope (global scope).
-	} else (false).
-	set (trees) to (second (trees)).
+	define variable (ir) with initial value (false).
+	define variable (trees) with initial value (parse file (f)).
+
+	while (trees) do {
+		set (ir) to (compile (first (trees))).	
+		if (ir) then {
+			emit (ir) to (declarations) in (declaration context) with scope (global scope).
+			emit (ir) to (definitions) in (definition context) with scope (global scope).
+			emit (ir) to (initializers) in (initializer context) with scope (global scope).
+			emit (ir) to (main) in (statement context) with scope (global scope).
+		} else (false).
+		set (trees) to (second (trees)).
+	}.
+
+	write line "#include \"caleinrtl.inc.c\"".
+	write line (declarations).
+	write line (definitions).
+	write line "int main() {".
+	write line "struct value *tmp_for_derefs = 0;".
+	write line (initializers).
+	write (main).
+	write line "return 0;".
+	write line "}".
 }.
 
-write line "#include \"caleinrtl.inc.c\"".
-write line (declarations).
-write line (definitions).
-write line "int main() {".
-write line "struct value *tmp_for_derefs = 0;".
-write line (initializers).
-write (main).
-write line "return 0;".
-write line "}".
+compile file (standard input).
