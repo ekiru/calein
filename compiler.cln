@@ -840,9 +840,7 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 	} else (if ((ir) is an ir variable) then {
 		set (name) to
 			(C ident for action (name of ir variable (ir))).
-		if (not ((lookup (name) in (variable list)) is equal to (scope)))
-			then (register variable (name) in scope (scope))
-			else (false).
+		register variable (name) in scope (scope).
 		if (((context) is equal to (definition context)) or ((context) is equal to (nested definition context))) then {
 			append string "struct value *" to (out).
 			append string (name) to (out).
