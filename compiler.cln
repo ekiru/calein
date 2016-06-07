@@ -1,26 +1,4 @@
-define variable (true) with initial value (#0 is equal to #0).
-define variable (false) with initial value (not (true)).
-define variable (tab) with initial value #9.
-define variable (tab string) with initial value "".
-append character (tab) to (tab string).
-define variable (new line) with initial value #10.
-define variable (space) with initial value #32.
-define variable (quote) with initial value #34.
-define variable (number sigil) with initial value #35.
-define variable (open paren) with initial value #40.
-define variable (close paren) with initial value #41.
-define variable (star) with initial value #42.
-define variable (plus) with initial value #43.
-define variable (comma) with initial value #44.
-define variable (minus) with initial value #45.
-define variable (dot) with initial value #46.
-define variable (slash) with initial value #47.
-define variable (character 0) with initial value #48.
-define variable (backslash) with initial value #92.
-define variable (underscore) with initial value #95.
-define variable (character n) with initial value #110.
-define variable (open brace) with initial value #123.
-define variable (close brace) with initial value #125.
+import "prelude".
 
 define procedure ((list) at (index)) to do {
 	while (not ((index) is equal to #0)) do {
