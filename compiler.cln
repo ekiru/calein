@@ -577,6 +577,7 @@ define procedure (lookup (key) in (alist)) to do {
 
 define variable (variable list) with initial value (false).
 define variable (function list) with initial value (false).
+define variable (function variable list) with initial value (false).
 
 define procedure (register variable (var) in scope (scope)) to do {
 	define variable (old scope) with initial value (lookup (var) in (variable list)).
@@ -703,18 +704,19 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 		set (function list) to (((proc name), ((adjusted proc name), (scope))), (function list)).
 		set (proc name) to (adjusted proc name).
 		define variable (old function list) with initial value (function list).
+		define variable (old variable list) with initial value (variable list).
 		if (((context) is equal to (definition context)) or ((context) is equal to (procedure definition context))
 			or ((context) is equal to (declaration context))) then {
 			if ((context) is equal to (declaration context)) then {
 				emit locals struct for procedure (ir) named (proc name) to (out) in (scope).
 				emit (body of ir procedure (ir)) to (out) in (declaration context) with scope (proc name).
 			} else {
+				set (variable list) to (lookup (adjusted proc name) in (function variable list)).
 				emit (body of ir procedure (ir)) to (out) in (procedure definition context) with scope (proc name).
 			}.
 			append string "struct value *" to (out).
 			append string (proc name) to (out).
 			append string "(" to (out).
-			define variable (old variable list) with initial value (variable list).
 			set (args) to (arguments of action (name of ir procedure (ir))).
 			set (sep) to "".
 			define variable (ident) with initial value (false).
@@ -775,8 +777,12 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 				}.
 				append string "return result;\n}\n" to (out).
 			}.
-			set (variable list) to (old variable list).
+			if ((context) is equal to (declaration context))
+			then (set (function variable list)
+				to (((adjusted proc name), (variable list)), (function variable list)))
+			else (false).
 		} else (false).
+		set (variable list) to (old variable list).
 		set (function list) to (old function list).
 	} else (if ((ir) is an ir sequence) then {
 		define variable (items)
