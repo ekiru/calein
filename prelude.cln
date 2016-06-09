@@ -21,3 +21,8 @@ define variable (underscore) with initial value #95.
 define variable (character n) with initial value #110.
 define variable (open brace) with initial value #123.
 define variable (close brace) with initial value #125.
+
+define procedure ((a) or (b))
+	to do (if (a) then (a) else (b)).
+define procedure ((a) and (b))
+	to do (if (a) then (b) else (a)).

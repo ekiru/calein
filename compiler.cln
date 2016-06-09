@@ -8,11 +8,6 @@ define procedure ((list) at (index)) to do {
 	first (list).
 }.
 
-define procedure ((a) or (b))
-	to do (if (a) then (a) else (b)).
-define procedure ((a) and (b))
-	to do (if (a) then (b) else (a)).
-
 define procedure ((a) or (b) or (c))
 	to do (((a) or (b)) or (c)).
 define procedure ((a) or (b) or (c) or (d))
