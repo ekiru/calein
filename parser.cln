@@ -1,0 +1,296 @@
+define variable (line number) with initial value #1.
+define variable (column number) with initial value #1.
+
+define variable (file to read from) with initial value (standard input).
+define variable (ungotten character) with initial value (false).
+define procedure (get character) to do {
+	define variable (tmp) with initial value (false).
+	if (ungotten character) then {
+		set (tmp) to (ungotten character).
+		set (ungotten character) to (false).
+	} else (set (tmp) to (read character from (file to read from))).
+	if ((tmp) is equal to (new line)) then {
+		set (line number) to ((line number) + #1).
+		set (column number) to #1.
+	} else (set (column number) to ((column number) + #1)).
+	tmp.
+}.
+define procedure (unget character (c)) to do {
+	set (ungotten character) to (c).
+	if ((c) is equal to (new line)) then {
+		set (line number) to ((line number) - #1).
+		set (column number) to (#0 - #1).
+	} else (set (column number) to ((column number) - #1)).
+}.
+
+define variable (literal kind) with initial value "literal kind".
+define variable (number kind) with initial value "number kind".
+define variable (sequence kind) with initial value "sequence kind".
+define variable (action kind) with initial value "action kind".
+
+define procedure (make literal (val))
+	to do ((literal kind), (val)).
+define procedure ((p) is a literal)
+	to do ((first (p)) is equal to (literal kind)).
+define procedure (value of literal (lit))
+	to do (second (lit)).
+define procedure (make number (val))
+	to do ((number kind), (val)).
+define procedure ((p) is a number)
+	to do ((first (p)) is equal to (number kind)).
+define procedure (value of number (num))
+	to do (second (num)).
+define procedure (make sequence (list))
+	to do ((sequence kind), (list)).
+define procedure ((p) is a sequence)
+	to do ((first (p)) is equal to (sequence kind)).
+define procedure (items of sequence (seq))
+	to do (second (seq)).
+define procedure (make action (name) with arguments (args))
+	to do ((action kind), ((name), (args))).
+define procedure ((p) is an action)
+	to do ((first (p)) is equal to (action kind)).
+define procedure (name of action (action))
+	to do (first (second (action))).
+define procedure (arguments of action (action))
+	to do (second (second (action))).
+
+define procedure (indent (n) times) to do {
+	while (not ((n) is equal to #0)) do {
+		write (tab string).
+		set (n) to ((n) - #1).
+	}.
+}.
+define procedure (write tree (tree) with indent (indent))
+	to do {
+		if ((tree) is a literal)
+		then {
+			indent (indent) times.
+			write "String: ".
+			write line (value of literal (tree)).
+		} else (if ((tree) is a number)	then {
+			indent (indent) times.
+			write "Number: ".
+			write line (value of number (tree)).
+		} else (if ((tree) is a sequence) then {
+			indent (indent) times.
+			write line "Sequence:".
+			define variable (items)
+				with initial value (items of sequence (tree)).
+			while (items) do {
+				write tree (first (items)) with indent ((indent) + #1).
+				set (items) to (second (items)).
+			}.
+		} else (if ((tree) is an action) then {
+			indent (indent) times.
+			write "Action: ".
+			write line (name of action (tree)).
+			define variable (args)
+				with initial value (arguments of action (tree)).
+			while (args) do {
+				indent ((indent) + #1) times.
+				write "Arg at ".
+				write line (first (first (args))).
+				write tree (second (first (args))) with indent ((indent) + #1).
+				set (args) to (second (args)).
+			}.
+		} else {
+			indent (indent) times.
+			write "unrecognized kind of tree: ".
+			write line (first (tree)).
+		}))).
+	}.
+
+define procedure (try parse action after (first child)) to do {
+	define variable (tree) with initial value (false).
+	define variable (again in action) with initial value (true).
+	define variable (children) with initial value (false).
+	define variable (literal) with initial value "".
+	define variable (paren) with initial value (false).
+	define variable (child) with initial value (false).
+
+	define variable (c) with initial value #0.
+
+	define procedure (error (msg))
+		to do {
+			write "Parse error at line ".
+			write (line number).
+			write ", column ".
+			write (column number).
+			write ": ".
+			write line (msg).
+			set (again in action) to (false).
+	}.
+	if (first child)
+	then (set (children) to ((#0, (first child)), (children)))
+	else (false).
+	while (again in action) do {
+		set (c) to (get character).
+		if ((not (c)) or ((c) is equal to (dot))
+			or ((c) is equal to (close paren))
+			or ((c) is equal to (close brace))) then {
+			set (again in action) to (false).
+			if (children)
+				then (if ((first (first (children))) is equal to (length (literal)))
+					then (trim right (literal))
+					else (false))
+				else (trim right (literal)).
+			if (((c) is equal to (close paren))
+				or ((c) is equal to (close brace)))
+			then (unget character (c))
+			else (false).
+			if ((length (literal)) is equal to #0)
+			then (set (tree) to (first child))
+			else (set (tree) to
+				(make action (literal)
+				 with arguments (reverse list (children)))).
+			set (again in action) to (false).
+		} else (if ((c) is (quote), (number sigil), (open paren), or (open brace)) then {
+			set (paren) to ((c) is equal to (open paren)).
+			if (not (paren)) then (unget character (c)) else (false).
+			set (child) to (parse (paren)).
+			if (not (child)) then (error "expected argument")
+			else {
+				set (children) to (((length (literal)), (child)), (children)).
+				if (paren) then {
+					set (c) to (get character).
+					if (not ((c) is equal to (close paren)))
+					then (error "expected close paren")
+					else (false).
+				} else (false).
+			}.
+		} else (if ((c) is whitespace) then {
+			if ((length (literal)) is equal to #0)
+			then (append character (space) to (literal))
+			else (if ((last character of (literal)) is equal to (space))
+			then (if (children)
+				then (if ((first (first (children))) is equal to (length (literal)))
+					then (append character (space) to (literal))
+					else (false))
+				else (false))
+			else (append character (space) to (literal))).
+		} else (append character (c) to (literal)))).
+	}.
+	tree.
+}.
+
+define procedure (parse (at start of expression)) to do {
+	define variable (again) with initial value (true).
+	define variable (literal) with initial value #0.
+	define variable (in escape) with initial value (false).
+	define variable (again in literal) with initial value (true).
+	define variable (again in sequence) with initial value (true).
+	define variable (at start of literal) with initial value (false).
+	define variable (children) with initial value (false).
+
+	define procedure (error (msg)) to do {
+		write "Parse error: ".
+		write line (msg).
+		set (again in literal) to (false).
+		set (again in sequence) to (false).
+		set (again) to (false).
+	}.
+	define variable (c) with initial value #0.
+
+	define variable (tree) with initial value (false).
+	while (again) do {
+		set (again) to (false).
+		set (c) to (get character).
+		if ((c) is equal to (quote)) then {
+			set (literal) to "".
+			set (again in literal) to (true).
+			set (in escape) to (false).
+			while (again in literal) do {
+				set (c) to (get character).
+				if (not (c))
+					then (error "unterminated string literal")
+				else (if (in escape)
+					then {if (((c) is equal to (backslash)) or ((c) is equal to (quote)))
+						then (append character (c) to (literal))
+					else (if ((c) is equal to (character n))
+						then (append character (new line) to (literal))
+					else (error "undefined escape sequence")).
+					set (in escape) to (false).
+				}
+				else (if ((c) is equal to (backslash))
+					then (set (in escape) to (true))
+				else (if ((c) is equal to (quote))
+					then {
+					set (again in literal) to (false).
+					set (tree) to (make literal (literal)).
+					if (at start of expression)
+					then (set (tree) to (try parse action after (tree)))
+					else (false).
+				}
+				else (append character (c) to (literal))))).
+			}.
+		} else (if ((c) is equal to (number sigil)) then {
+			set (again in literal) to (true).
+			set (literal) to #0.
+			set (at start of literal) to (true).
+			while (again in literal) do {
+				set (c) to (get character).
+				if ((at start of literal) and (not (c))) then
+					(error "Unexpected EOF at beginning of number")
+				else (if (not ((c) is digit)) then {
+					if (c) then (unget character (c)) else (false).
+					set (again in literal) to (false).
+					set (tree) to (make number (literal)).
+					if (at start of expression)
+					then (set (tree) to (try parse action after (tree)))
+					else (false).
+				} else {
+					set (literal) to (((literal) * #10) + ((c) - (character 0))).
+					set (at start of literal) to (false).
+				}).
+			}.
+		} else (if ((c) is equal to (open brace)) then {
+			set (children) to (false).
+			set (again in sequence) to (true).
+			while (again in sequence) do {
+				set (c) to (get character).
+				if (not (c)) then (error "unexpected EOF in sequence")
+				else (if ((c) is equal to (close brace)) then {
+					set (again in sequence) to (false).
+					set (tree) to (make sequence (reverse list (children))).
+				} else {
+					unget character (c).
+					define variable (child) with initial value (parse (true)).
+					if (child)
+					then (set (children) to ((child), (children)))
+					else (false).
+				}).
+			}.
+		} else (if ((c) is whitespace)
+			then (set (again) to (true))
+		else (if ((c) is equal to (close brace))
+			then (unget character (c))
+		else (if (c) then {
+			unget character (c).
+			set (tree) to (try parse action after (false)).
+		} else (false)))))).
+	}.
+	tree.
+}.
+
+define procedure (parse file (f)) to do {
+	define variable (old file) with initial value (file to read from).
+	define variable (old line number) with initial value (line number).
+	define variable (old column number) with initial value (column number).
+	define variable (old ungotten) with initial value (ungotten character).
+	define variable (reversed syntax trees) with initial value (false).
+	define variable (tree) with initial value (false).
+	set (file to read from) to (f).
+	while {
+		set (tree) to (parse (true)).
+		tree.
+	} do {
+		set (reversed syntax trees) to ((tree), (reversed syntax trees)).
+	}.
+	set (file to read from) to (old file).
+	set (line number) to (old line number).
+	set (column number) to (old column number).
+	set (ungotten character) to (old ungotten).
+	reverse list (reversed syntax trees).
+}.	
+
