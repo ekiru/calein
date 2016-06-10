@@ -26,3 +26,56 @@ define procedure ((a) or (b))
 	to do (if (a) then (a) else (b)).
 define procedure ((a) and (b))
 	to do (if (a) then (b) else (a)).
+
+define procedure ((list) at (index)) to do {
+	while (not ((index) is equal to #0)) do {
+		set (list) to (second (list)).
+		set (index) to ((index) - #1).
+	}.
+	first (list).
+}.
+
+define procedure ((a) or (b) or (c))
+	to do (((a) or (b)) or (c)).
+define procedure ((a) or (b) or (c) or (d))
+	to do (((a) or (b)) or ((c) or (d))).
+
+define procedure ((x) is between (a) and (b)) to do {
+	define variable (found) with initial value (false).
+	while (not ((a) is equal to (b))) do {
+		if ((a) is equal to (x))
+			then (set (found) to (true))
+			else (false).
+		set (a) to ((a) + #1).
+	}.
+	found.
+}.
+
+define procedure (reverse string (s)) to do {
+	define variable (rev) with initial value "".
+	define variable (i) with initial value #0.
+	while (not ((i) is equal to (length (s)))) do {
+		append character (character at (((length (s)) - (i)) - #1) of (s))
+			to (rev).
+		set (i) to ((i) + #1).
+	}.
+	rev.
+}.
+
+define procedure (string of number (number)) to do {
+	define variable (s) with initial value "".
+	while (not ((number) is equal to #0)) do {
+		append character (((number) mod #10) + (character 0)) to (s).
+		set (number) to ((number) / #10).
+	}.
+	if ((s) is equal to "")
+		then "0"
+		else (reverse string (s)).
+}.
+
+define procedure ((c) is digit) to do 
+	((c) is between #48 and #58).
+define procedure ((c) is whitespace) to do
+	(((c) is equal to (space)) or
+	 ((c) is equal to (tab)) or
+	 ((c) is equal to (new line))).
