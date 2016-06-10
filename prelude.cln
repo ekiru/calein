@@ -79,3 +79,56 @@ define procedure ((c) is whitespace) to do
 	(((c) is equal to (space)) or
 	 ((c) is equal to (tab)) or
 	 ((c) is equal to (new line))).
+
+define procedure (reverse list (list)) to do {
+	define variable (acc) with initial value (false).
+	while (list) do {
+		set (acc) to ((first (list)), (acc)).
+		set (list) to (second (list)).
+	}.
+	acc.
+}.
+
+define procedure (last character of (s))
+	to do (character at ((length (s)) - #1) of (s)).
+
+define procedure ((c) is (c 1), (c 2), (c 3), or (c 4))
+	to do (((c) is equal to (c 1)) or ((c) is equal to (c 2)) or
+		((c) is equal to (c 3)) or ((c) is equal to (c 4))).
+
+define procedure (append string (t) to (s)) to do {
+	define variable (i) with initial value #0.
+	while (not ((i) is equal to (length (t)))) do {
+		append character (character at (i) of (t)) to (s).
+		set (i) to ((i) + #1).
+	}.
+}.
+
+define procedure (concat (s) and (t)) to do {
+	define variable (u) with initial value "".
+	append string (s) to (u).
+	append string (t) to (u).
+	u.
+}.
+
+define procedure ((list) contains (elem)) to do {
+	define variable (found) with initial value (false).
+	while (list) do {
+		if ((first (list)) is equal to (elem)) then {
+			set (list) to (false).
+			set (found) to (true).
+		} else (set (list) to (second (list))).
+	}.
+	found.
+}.
+
+define procedure (lookup (key) in (alist)) to do {
+	define variable (found) with initial value (false).
+	while (alist) do {
+		if ((first (first (alist))) is equal to (key)) then {
+			set (found) to (second (first (alist))).
+			set (alist) to (false).
+		} else (set (alist) to (second (alist))).
+	}.
+	found.
+}.

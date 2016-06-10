@@ -186,6 +186,47 @@ struct global_SCOPEcalein__SPACE_ARGis_SPACEwhitespace_local_vars {
 struct value *calein_c;
 };
 struct value *global_SCOPEcalein__SPACE_ARGis_SPACEwhitespace(struct value *calein_c);
+struct global_SCOPEcalein_reverse_SPACElist_ARG_local_vars {
+struct value *calein_list;
+struct value *calein_acc;
+};
+struct value *global_SCOPEcalein_reverse_SPACElist_ARG(struct value *calein_list);
+struct global_SCOPEcalein_last_SPACEcharacter_SPACEof_ARG_local_vars {
+struct value *calein_s;
+};
+struct value *global_SCOPEcalein_last_SPACEcharacter_SPACEof_ARG(struct value *calein_s);
+struct global_SCOPEcalein__SPACE_ARGis_SPACE_COMMA_ARG_SPACE_COMMA_ARG_SPACE_COMMA_ARG_SPACEor_ARG_local_vars {
+struct value *calein_c;
+struct value *calein_c_SPACE1;
+struct value *calein_c_SPACE2;
+struct value *calein_c_SPACE3;
+struct value *calein_c_SPACE4;
+};
+struct value *global_SCOPEcalein__SPACE_ARGis_SPACE_COMMA_ARG_SPACE_COMMA_ARG_SPACE_COMMA_ARG_SPACEor_ARG(struct value *calein_c, struct value *calein_c_SPACE1, struct value *calein_c_SPACE2, struct value *calein_c_SPACE3, struct value *calein_c_SPACE4);
+struct global_SCOPEcalein_append_SPACEstring_SPACE_SPACE_ARGto_ARG_local_vars {
+struct value *calein_t;
+struct value *calein_s;
+struct value *calein_i;
+};
+struct value *global_SCOPEcalein_append_SPACEstring_SPACE_SPACE_ARGto_ARG(struct value *calein_t, struct value *calein_s);
+struct global_SCOPEcalein_concat_SPACE_SPACE_ARGand_ARG_local_vars {
+struct value *calein_s;
+struct value *calein_t;
+struct value *calein_u;
+};
+struct value *global_SCOPEcalein_concat_SPACE_SPACE_ARGand_ARG(struct value *calein_s, struct value *calein_t);
+struct global_SCOPEcalein__SPACE_ARGcontains_ARG_local_vars {
+struct value *calein_list;
+struct value *calein_elem;
+struct value *calein_found;
+};
+struct value *global_SCOPEcalein__SPACE_ARGcontains_ARG(struct value *calein_list, struct value *calein_elem);
+struct global_SCOPEcalein_lookup_SPACE_SPACE_ARGin_ARG_local_vars {
+struct value *calein_key;
+struct value *calein_alist;
+struct value *calein_found;
+};
+struct value *global_SCOPEcalein_lookup_SPACE_SPACE_ARGin_ARG(struct value *calein_key, struct value *calein_alist);
 struct global_SCOPEcalein_get_SPACEcharacter_local_vars {
 struct value *calein_tmp;
 };
@@ -194,11 +235,6 @@ struct global_SCOPEcalein_unget_SPACEcharacter_ARG_local_vars {
 struct value *calein_c;
 };
 struct value *global_SCOPEcalein_unget_SPACEcharacter_ARG(struct value *calein_c);
-struct global_SCOPEcalein_reverse_SPACElist_ARG_local_vars {
-struct value *calein_list;
-struct value *calein_acc;
-};
-struct value *global_SCOPEcalein_reverse_SPACElist_ARG(struct value *calein_list);
 struct global_SCOPEcalein_make_SPACEliteral_ARG_local_vars {
 struct value *calein_val;
 };
@@ -263,18 +299,6 @@ struct value *calein_items;
 struct value *calein_args;
 };
 struct value *global_SCOPEcalein_write_SPACEtree_SPACE_SPACE_ARGwith_SPACEindent_ARG(struct value *calein_tree, struct value *calein_indent);
-struct global_SCOPEcalein_last_SPACEcharacter_SPACEof_ARG_local_vars {
-struct value *calein_s;
-};
-struct value *global_SCOPEcalein_last_SPACEcharacter_SPACEof_ARG(struct value *calein_s);
-struct global_SCOPEcalein__SPACE_ARGis_SPACE_COMMA_ARG_SPACE_COMMA_ARG_SPACE_COMMA_ARG_SPACEor_ARG_local_vars {
-struct value *calein_c;
-struct value *calein_c_SPACE1;
-struct value *calein_c_SPACE2;
-struct value *calein_c_SPACE3;
-struct value *calein_c_SPACE4;
-};
-struct value *global_SCOPEcalein__SPACE_ARGis_SPACE_COMMA_ARG_SPACE_COMMA_ARG_SPACE_COMMA_ARG_SPACEor_ARG(struct value *calein_c, struct value *calein_c_SPACE1, struct value *calein_c_SPACE2, struct value *calein_c_SPACE3, struct value *calein_c_SPACE4);
 struct global_SCOPEcalein_try_SPACEparse_SPACEaction_SPACEafter_ARG_local_vars {
 struct value *calein_first_SPACEchild;
 struct value *calein_tree;
@@ -320,18 +344,6 @@ struct value *calein_reversed_SPACEsyntax_SPACEtrees;
 struct value *calein_tree;
 };
 struct value *global_SCOPEcalein_parse_SPACEfile_ARG(struct value *calein_f);
-struct global_SCOPEcalein_append_SPACEstring_SPACE_SPACE_ARGto_ARG_local_vars {
-struct value *calein_t;
-struct value *calein_s;
-struct value *calein_i;
-};
-struct value *global_SCOPEcalein_append_SPACEstring_SPACE_SPACE_ARGto_ARG(struct value *calein_t, struct value *calein_s);
-struct global_SCOPEcalein_concat_SPACE_SPACE_ARGand_ARG_local_vars {
-struct value *calein_s;
-struct value *calein_t;
-struct value *calein_u;
-};
-struct value *global_SCOPEcalein_concat_SPACE_SPACE_ARGand_ARG(struct value *calein_s, struct value *calein_t);
 struct global_SCOPEcalein_substitute_SPACE_SPACE_ARGfor_ARG_local_vars {
 struct value *calein_str;
 struct value *calein_c;
@@ -510,18 +522,6 @@ struct global_SCOPEcalein_ir_SPACEof_SPACEir_SPACEimport_ARG_local_vars {
 struct value *calein_ir;
 };
 struct value *global_SCOPEcalein_ir_SPACEof_SPACEir_SPACEimport_ARG(struct value *calein_ir);
-struct global_SCOPEcalein__SPACE_ARGcontains_ARG_local_vars {
-struct value *calein_list;
-struct value *calein_elem;
-struct value *calein_found;
-};
-struct value *global_SCOPEcalein__SPACE_ARGcontains_ARG(struct value *calein_list, struct value *calein_elem);
-struct global_SCOPEcalein_lookup_SPACE_SPACE_ARGin_ARG_local_vars {
-struct value *calein_key;
-struct value *calein_alist;
-struct value *calein_found;
-};
-struct value *global_SCOPEcalein_lookup_SPACE_SPACE_ARGin_ARG(struct value *calein_key, struct value *calein_alist);
 struct global_SCOPEcalein_register_SPACEvariable_SPACE_SPACE_ARGin_SPACEscope_ARG_local_vars {
 struct value *calein_var;
 struct value *calein_scope;
@@ -752,6 +752,103 @@ struct value *result = global_SCOPEcalein__SPACE_ARGor_SPACE_SPACE_ARGor_ARG(val
 value_add_reference(result);
 value_remove_reference(local_vars.calein_c);return result;
 }
+struct value *global_SCOPEcalein_reverse_SPACElist_ARG(struct value *calein_list){
+struct global_SCOPEcalein_reverse_SPACElist_ARG_local_vars local_vars;
+local_vars.calein_acc = 0;
+local_vars.calein_list = calein_list;
+struct value *tmp_for_derefs = 0;
+struct value *result = ((local_vars.calein_acc = value_add_reference(calein_false)), ({ while (value_boolean_is_true_remove_floating_reference(local_vars.calein_list)) {
+(tmp_for_derefs = local_vars.calein_acc, local_vars.calein_acc = value_add_reference(global_SCOPEcalein__COMMA_ARG_ARG(value_add_reference(global_SCOPEcalein_first_ARG(value_add_reference(local_vars.calein_list))),value_add_reference(local_vars.calein_acc))), value_remove_reference(tmp_for_derefs),local_vars.calein_acc);
+(tmp_for_derefs = local_vars.calein_list, local_vars.calein_list = value_add_reference(global_SCOPEcalein_second_ARG(value_add_reference(local_vars.calein_list))), value_remove_reference(tmp_for_derefs),local_vars.calein_list);
+
+}
+ 0; }), local_vars.calein_acc);
+value_add_reference(result);
+value_remove_reference(local_vars.calein_acc);value_remove_reference(local_vars.calein_list);return result;
+}
+struct value *global_SCOPEcalein_last_SPACEcharacter_SPACEof_ARG(struct value *calein_s){
+struct global_SCOPEcalein_last_SPACEcharacter_SPACEof_ARG_local_vars local_vars;
+local_vars.calein_s = calein_s;
+struct value *tmp_for_derefs = 0;
+struct value *result = global_SCOPEcalein_character_SPACEat_SPACE_SPACE_ARGof_ARG(value_add_reference(global_SCOPEcalein__SPACE_ARG_DASH_ARG(value_add_reference(global_SCOPEcalein_length_ARG(value_add_reference(local_vars.calein_s))),value_add_reference(value_make_number(1)))),value_add_reference(local_vars.calein_s));
+value_add_reference(result);
+value_remove_reference(local_vars.calein_s);return result;
+}
+struct value *global_SCOPEcalein__SPACE_ARGis_SPACE_COMMA_ARG_SPACE_COMMA_ARG_SPACE_COMMA_ARG_SPACEor_ARG(struct value *calein_c, struct value *calein_c_SPACE1, struct value *calein_c_SPACE2, struct value *calein_c_SPACE3, struct value *calein_c_SPACE4){
+struct global_SCOPEcalein__SPACE_ARGis_SPACE_COMMA_ARG_SPACE_COMMA_ARG_SPACE_COMMA_ARG_SPACEor_ARG_local_vars local_vars;
+local_vars.calein_c = calein_c;
+local_vars.calein_c_SPACE1 = calein_c_SPACE1;
+local_vars.calein_c_SPACE2 = calein_c_SPACE2;
+local_vars.calein_c_SPACE3 = calein_c_SPACE3;
+local_vars.calein_c_SPACE4 = calein_c_SPACE4;
+struct value *tmp_for_derefs = 0;
+struct value *result = global_SCOPEcalein__SPACE_ARGor_SPACE_SPACE_ARGor_SPACE_SPACE_ARGor_ARG(value_add_reference(global_SCOPEcalein__SPACE_ARGis_SPACEequal_SPACEto_ARG(value_add_reference(local_vars.calein_c),value_add_reference(local_vars.calein_c_SPACE1))),value_add_reference(global_SCOPEcalein__SPACE_ARGis_SPACEequal_SPACEto_ARG(value_add_reference(local_vars.calein_c),value_add_reference(local_vars.calein_c_SPACE2))),value_add_reference(global_SCOPEcalein__SPACE_ARGis_SPACEequal_SPACEto_ARG(value_add_reference(local_vars.calein_c),value_add_reference(local_vars.calein_c_SPACE3))),value_add_reference(global_SCOPEcalein__SPACE_ARGis_SPACEequal_SPACEto_ARG(value_add_reference(local_vars.calein_c),value_add_reference(local_vars.calein_c_SPACE4))));
+value_add_reference(result);
+value_remove_reference(local_vars.calein_c_SPACE4);value_remove_reference(local_vars.calein_c_SPACE3);value_remove_reference(local_vars.calein_c_SPACE2);value_remove_reference(local_vars.calein_c_SPACE1);value_remove_reference(local_vars.calein_c);return result;
+}
+struct value *global_SCOPEcalein_append_SPACEstring_SPACE_SPACE_ARGto_ARG(struct value *calein_t, struct value *calein_s){
+struct global_SCOPEcalein_append_SPACEstring_SPACE_SPACE_ARGto_ARG_local_vars local_vars;
+local_vars.calein_i = 0;
+local_vars.calein_t = calein_t;
+local_vars.calein_s = calein_s;
+struct value *tmp_for_derefs = 0;
+struct value *result = ((local_vars.calein_i = value_add_reference(value_make_number(0))), ({ while (value_boolean_is_true_remove_floating_reference(global_SCOPEcalein_not_ARG(value_add_reference(global_SCOPEcalein__SPACE_ARGis_SPACEequal_SPACEto_ARG(value_add_reference(local_vars.calein_i),value_add_reference(global_SCOPEcalein_length_ARG(value_add_reference(local_vars.calein_t)))))))) {
+global_SCOPEcalein_append_SPACEcharacter_SPACE_SPACE_ARGto_ARG(value_add_reference(global_SCOPEcalein_character_SPACEat_SPACE_SPACE_ARGof_ARG(value_add_reference(local_vars.calein_i),value_add_reference(local_vars.calein_t))),value_add_reference(local_vars.calein_s));
+(tmp_for_derefs = local_vars.calein_i, local_vars.calein_i = value_add_reference(global_SCOPEcalein__SPACE_ARG_PLUS_ARG(value_add_reference(local_vars.calein_i),value_add_reference(value_make_number(1)))), value_remove_reference(tmp_for_derefs),local_vars.calein_i);
+
+}
+ 0; }));
+value_add_reference(result);
+value_remove_reference(local_vars.calein_i);value_remove_reference(local_vars.calein_s);value_remove_reference(local_vars.calein_t);return result;
+}
+struct value *global_SCOPEcalein_concat_SPACE_SPACE_ARGand_ARG(struct value *calein_s, struct value *calein_t){
+struct global_SCOPEcalein_concat_SPACE_SPACE_ARGand_ARG_local_vars local_vars;
+local_vars.calein_u = 0;
+local_vars.calein_s = calein_s;
+local_vars.calein_t = calein_t;
+struct value *tmp_for_derefs = 0;
+struct value *result = ((local_vars.calein_u = value_add_reference(value_make_string_from_c_string(""))), global_SCOPEcalein_append_SPACEstring_SPACE_SPACE_ARGto_ARG(value_add_reference(local_vars.calein_s),value_add_reference(local_vars.calein_u)), global_SCOPEcalein_append_SPACEstring_SPACE_SPACE_ARGto_ARG(value_add_reference(local_vars.calein_t),value_add_reference(local_vars.calein_u)), local_vars.calein_u);
+value_add_reference(result);
+value_remove_reference(local_vars.calein_u);value_remove_reference(local_vars.calein_t);value_remove_reference(local_vars.calein_s);return result;
+}
+struct value *global_SCOPEcalein__SPACE_ARGcontains_ARG(struct value *calein_list, struct value *calein_elem){
+struct global_SCOPEcalein__SPACE_ARGcontains_ARG_local_vars local_vars;
+local_vars.calein_found = 0;
+local_vars.calein_list = calein_list;
+local_vars.calein_elem = calein_elem;
+struct value *tmp_for_derefs = 0;
+struct value *result = ((local_vars.calein_found = value_add_reference(calein_false)), ({ while (value_boolean_is_true_remove_floating_reference(local_vars.calein_list)) {
+if (value_boolean_is_true_remove_floating_reference(global_SCOPEcalein__SPACE_ARGis_SPACEequal_SPACEto_ARG(value_add_reference(global_SCOPEcalein_first_ARG(value_add_reference(local_vars.calein_list))),value_add_reference(local_vars.calein_elem)))) {
+(tmp_for_derefs = local_vars.calein_list, local_vars.calein_list = value_add_reference(calein_false), value_remove_reference(tmp_for_derefs),local_vars.calein_list);
+(tmp_for_derefs = local_vars.calein_found, local_vars.calein_found = value_add_reference(calein_true), value_remove_reference(tmp_for_derefs),local_vars.calein_found);
+
+} else {
+(tmp_for_derefs = local_vars.calein_list, local_vars.calein_list = value_add_reference(global_SCOPEcalein_second_ARG(value_add_reference(local_vars.calein_list))), value_remove_reference(tmp_for_derefs),local_vars.calein_list);
+}
+}
+ 0; }), local_vars.calein_found);
+value_add_reference(result);
+value_remove_reference(local_vars.calein_found);value_remove_reference(local_vars.calein_elem);value_remove_reference(local_vars.calein_list);return result;
+}
+struct value *global_SCOPEcalein_lookup_SPACE_SPACE_ARGin_ARG(struct value *calein_key, struct value *calein_alist){
+struct global_SCOPEcalein_lookup_SPACE_SPACE_ARGin_ARG_local_vars local_vars;
+local_vars.calein_found = 0;
+local_vars.calein_key = calein_key;
+local_vars.calein_alist = calein_alist;
+struct value *tmp_for_derefs = 0;
+struct value *result = ((local_vars.calein_found = value_add_reference(calein_false)), ({ while (value_boolean_is_true_remove_floating_reference(local_vars.calein_alist)) {
+if (value_boolean_is_true_remove_floating_reference(global_SCOPEcalein__SPACE_ARGis_SPACEequal_SPACEto_ARG(value_add_reference(global_SCOPEcalein_first_ARG(value_add_reference(global_SCOPEcalein_first_ARG(value_add_reference(local_vars.calein_alist))))),value_add_reference(local_vars.calein_key)))) {
+(tmp_for_derefs = local_vars.calein_found, local_vars.calein_found = value_add_reference(global_SCOPEcalein_second_ARG(value_add_reference(global_SCOPEcalein_first_ARG(value_add_reference(local_vars.calein_alist))))), value_remove_reference(tmp_for_derefs),local_vars.calein_found);
+(tmp_for_derefs = local_vars.calein_alist, local_vars.calein_alist = value_add_reference(calein_false), value_remove_reference(tmp_for_derefs),local_vars.calein_alist);
+
+} else {
+(tmp_for_derefs = local_vars.calein_alist, local_vars.calein_alist = value_add_reference(global_SCOPEcalein_second_ARG(value_add_reference(local_vars.calein_alist))), value_remove_reference(tmp_for_derefs),local_vars.calein_alist);
+}
+}
+ 0; }), local_vars.calein_found);
+value_add_reference(result);
+value_remove_reference(local_vars.calein_found);value_remove_reference(local_vars.calein_alist);value_remove_reference(local_vars.calein_key);return result;
+}
 struct value *calein_line_SPACEnumber;
 struct value *calein_column_SPACEnumber;
 struct value *calein_file_SPACEto_SPACEread_SPACEfrom;
@@ -771,20 +868,6 @@ struct value *tmp_for_derefs = 0;
 struct value *result = ((tmp_for_derefs = calein_ungotten_SPACEcharacter, calein_ungotten_SPACEcharacter = value_add_reference(local_vars.calein_c), value_remove_reference(tmp_for_derefs),calein_ungotten_SPACEcharacter), (value_boolean_is_true_remove_floating_reference(global_SCOPEcalein__SPACE_ARGis_SPACEequal_SPACEto_ARG(value_add_reference(local_vars.calein_c),value_add_reference(calein_new_SPACEline))) ? (((tmp_for_derefs = calein_line_SPACEnumber, calein_line_SPACEnumber = value_add_reference(global_SCOPEcalein__SPACE_ARG_DASH_ARG(value_add_reference(calein_line_SPACEnumber),value_add_reference(value_make_number(1)))), value_remove_reference(tmp_for_derefs),calein_line_SPACEnumber), (tmp_for_derefs = calein_column_SPACEnumber, calein_column_SPACEnumber = value_add_reference(global_SCOPEcalein__SPACE_ARG_DASH_ARG(value_add_reference(value_make_number(0)),value_add_reference(value_make_number(1)))), value_remove_reference(tmp_for_derefs),calein_column_SPACEnumber))) : ((tmp_for_derefs = calein_column_SPACEnumber, calein_column_SPACEnumber = value_add_reference(global_SCOPEcalein__SPACE_ARG_DASH_ARG(value_add_reference(calein_column_SPACEnumber),value_add_reference(value_make_number(1)))), value_remove_reference(tmp_for_derefs),calein_column_SPACEnumber))));
 value_add_reference(result);
 value_remove_reference(local_vars.calein_c);return result;
-}
-struct value *global_SCOPEcalein_reverse_SPACElist_ARG(struct value *calein_list){
-struct global_SCOPEcalein_reverse_SPACElist_ARG_local_vars local_vars;
-local_vars.calein_acc = 0;
-local_vars.calein_list = calein_list;
-struct value *tmp_for_derefs = 0;
-struct value *result = ((local_vars.calein_acc = value_add_reference(calein_false)), ({ while (value_boolean_is_true_remove_floating_reference(local_vars.calein_list)) {
-(tmp_for_derefs = local_vars.calein_acc, local_vars.calein_acc = value_add_reference(global_SCOPEcalein__COMMA_ARG_ARG(value_add_reference(global_SCOPEcalein_first_ARG(value_add_reference(local_vars.calein_list))),value_add_reference(local_vars.calein_acc))), value_remove_reference(tmp_for_derefs),local_vars.calein_acc);
-(tmp_for_derefs = local_vars.calein_list, local_vars.calein_list = value_add_reference(global_SCOPEcalein_second_ARG(value_add_reference(local_vars.calein_list))), value_remove_reference(tmp_for_derefs),local_vars.calein_list);
-
-}
- 0; }), local_vars.calein_acc);
-value_add_reference(result);
-value_remove_reference(local_vars.calein_acc);value_remove_reference(local_vars.calein_list);return result;
 }
 struct value *calein_literal_SPACEkind;
 struct value *calein_number_SPACEkind;
@@ -931,26 +1014,6 @@ global_SCOPEcalein_write_SPACEtree_SPACE_SPACE_ARGwith_SPACEindent_ARG(value_add
  0; }))) : ((global_SCOPEcalein_indent_SPACE_SPACE_ARGtimes(value_add_reference(local_vars.calein_indent)), global_SCOPEcalein_write_ARG(value_add_reference(value_make_string_from_c_string("unrecognized kind of tree: "))), global_SCOPEcalein_write_SPACEline_ARG(value_add_reference(global_SCOPEcalein_first_ARG(value_add_reference(local_vars.calein_tree))))))))))))));
 value_add_reference(result);
 value_remove_reference(local_vars.calein_args);value_remove_reference(local_vars.calein_items);value_remove_reference(local_vars.calein_indent);value_remove_reference(local_vars.calein_tree);return result;
-}
-struct value *global_SCOPEcalein_last_SPACEcharacter_SPACEof_ARG(struct value *calein_s){
-struct global_SCOPEcalein_last_SPACEcharacter_SPACEof_ARG_local_vars local_vars;
-local_vars.calein_s = calein_s;
-struct value *tmp_for_derefs = 0;
-struct value *result = global_SCOPEcalein_character_SPACEat_SPACE_SPACE_ARGof_ARG(value_add_reference(global_SCOPEcalein__SPACE_ARG_DASH_ARG(value_add_reference(global_SCOPEcalein_length_ARG(value_add_reference(local_vars.calein_s))),value_add_reference(value_make_number(1)))),value_add_reference(local_vars.calein_s));
-value_add_reference(result);
-value_remove_reference(local_vars.calein_s);return result;
-}
-struct value *global_SCOPEcalein__SPACE_ARGis_SPACE_COMMA_ARG_SPACE_COMMA_ARG_SPACE_COMMA_ARG_SPACEor_ARG(struct value *calein_c, struct value *calein_c_SPACE1, struct value *calein_c_SPACE2, struct value *calein_c_SPACE3, struct value *calein_c_SPACE4){
-struct global_SCOPEcalein__SPACE_ARGis_SPACE_COMMA_ARG_SPACE_COMMA_ARG_SPACE_COMMA_ARG_SPACEor_ARG_local_vars local_vars;
-local_vars.calein_c = calein_c;
-local_vars.calein_c_SPACE1 = calein_c_SPACE1;
-local_vars.calein_c_SPACE2 = calein_c_SPACE2;
-local_vars.calein_c_SPACE3 = calein_c_SPACE3;
-local_vars.calein_c_SPACE4 = calein_c_SPACE4;
-struct value *tmp_for_derefs = 0;
-struct value *result = global_SCOPEcalein__SPACE_ARGor_SPACE_SPACE_ARGor_SPACE_SPACE_ARGor_ARG(value_add_reference(global_SCOPEcalein__SPACE_ARGis_SPACEequal_SPACEto_ARG(value_add_reference(local_vars.calein_c),value_add_reference(local_vars.calein_c_SPACE1))),value_add_reference(global_SCOPEcalein__SPACE_ARGis_SPACEequal_SPACEto_ARG(value_add_reference(local_vars.calein_c),value_add_reference(local_vars.calein_c_SPACE2))),value_add_reference(global_SCOPEcalein__SPACE_ARGis_SPACEequal_SPACEto_ARG(value_add_reference(local_vars.calein_c),value_add_reference(local_vars.calein_c_SPACE3))),value_add_reference(global_SCOPEcalein__SPACE_ARGis_SPACEequal_SPACEto_ARG(value_add_reference(local_vars.calein_c),value_add_reference(local_vars.calein_c_SPACE4))));
-value_add_reference(result);
-value_remove_reference(local_vars.calein_c_SPACE4);value_remove_reference(local_vars.calein_c_SPACE3);value_remove_reference(local_vars.calein_c_SPACE2);value_remove_reference(local_vars.calein_c_SPACE1);value_remove_reference(local_vars.calein_c);return result;
 }
 struct value *global_SCOPEcalein_try_SPACEparse_SPACEaction_SPACEafter_ARG_SCOPEcalein_error_ARG(struct global_SCOPEcalein_try_SPACEparse_SPACEaction_SPACEafter_ARG_local_vars *global_SCOPEcalein_try_SPACEparse_SPACEaction_SPACEafter_ARG_local_vars, struct value *calein_msg){
 struct global_SCOPEcalein_try_SPACEparse_SPACEaction_SPACEafter_ARG_SCOPEcalein_error_ARG_local_vars local_vars;
@@ -1211,31 +1274,6 @@ struct value *result = ((local_vars.calein_old_SPACEfile = value_add_reference(c
  0; }), (tmp_for_derefs = calein_file_SPACEto_SPACEread_SPACEfrom, calein_file_SPACEto_SPACEread_SPACEfrom = value_add_reference(local_vars.calein_old_SPACEfile), value_remove_reference(tmp_for_derefs),calein_file_SPACEto_SPACEread_SPACEfrom), (tmp_for_derefs = calein_line_SPACEnumber, calein_line_SPACEnumber = value_add_reference(local_vars.calein_old_SPACEline_SPACEnumber), value_remove_reference(tmp_for_derefs),calein_line_SPACEnumber), (tmp_for_derefs = calein_column_SPACEnumber, calein_column_SPACEnumber = value_add_reference(local_vars.calein_old_SPACEcolumn_SPACEnumber), value_remove_reference(tmp_for_derefs),calein_column_SPACEnumber), (tmp_for_derefs = calein_ungotten_SPACEcharacter, calein_ungotten_SPACEcharacter = value_add_reference(local_vars.calein_old_SPACEungotten), value_remove_reference(tmp_for_derefs),calein_ungotten_SPACEcharacter), global_SCOPEcalein_reverse_SPACElist_ARG(value_add_reference(local_vars.calein_reversed_SPACEsyntax_SPACEtrees)));
 value_add_reference(result);
 value_remove_reference(local_vars.calein_tree);value_remove_reference(local_vars.calein_reversed_SPACEsyntax_SPACEtrees);value_remove_reference(local_vars.calein_old_SPACEungotten);value_remove_reference(local_vars.calein_old_SPACEcolumn_SPACEnumber);value_remove_reference(local_vars.calein_old_SPACEline_SPACEnumber);value_remove_reference(local_vars.calein_old_SPACEfile);value_remove_reference(local_vars.calein_f);return result;
-}
-struct value *global_SCOPEcalein_append_SPACEstring_SPACE_SPACE_ARGto_ARG(struct value *calein_t, struct value *calein_s){
-struct global_SCOPEcalein_append_SPACEstring_SPACE_SPACE_ARGto_ARG_local_vars local_vars;
-local_vars.calein_i = 0;
-local_vars.calein_t = calein_t;
-local_vars.calein_s = calein_s;
-struct value *tmp_for_derefs = 0;
-struct value *result = ((local_vars.calein_i = value_add_reference(value_make_number(0))), ({ while (value_boolean_is_true_remove_floating_reference(global_SCOPEcalein_not_ARG(value_add_reference(global_SCOPEcalein__SPACE_ARGis_SPACEequal_SPACEto_ARG(value_add_reference(local_vars.calein_i),value_add_reference(global_SCOPEcalein_length_ARG(value_add_reference(local_vars.calein_t)))))))) {
-global_SCOPEcalein_append_SPACEcharacter_SPACE_SPACE_ARGto_ARG(value_add_reference(global_SCOPEcalein_character_SPACEat_SPACE_SPACE_ARGof_ARG(value_add_reference(local_vars.calein_i),value_add_reference(local_vars.calein_t))),value_add_reference(local_vars.calein_s));
-(tmp_for_derefs = local_vars.calein_i, local_vars.calein_i = value_add_reference(global_SCOPEcalein__SPACE_ARG_PLUS_ARG(value_add_reference(local_vars.calein_i),value_add_reference(value_make_number(1)))), value_remove_reference(tmp_for_derefs),local_vars.calein_i);
-
-}
- 0; }));
-value_add_reference(result);
-value_remove_reference(local_vars.calein_i);value_remove_reference(local_vars.calein_s);value_remove_reference(local_vars.calein_t);return result;
-}
-struct value *global_SCOPEcalein_concat_SPACE_SPACE_ARGand_ARG(struct value *calein_s, struct value *calein_t){
-struct global_SCOPEcalein_concat_SPACE_SPACE_ARGand_ARG_local_vars local_vars;
-local_vars.calein_u = 0;
-local_vars.calein_s = calein_s;
-local_vars.calein_t = calein_t;
-struct value *tmp_for_derefs = 0;
-struct value *result = ((local_vars.calein_u = value_add_reference(value_make_string_from_c_string(""))), global_SCOPEcalein_append_SPACEstring_SPACE_SPACE_ARGto_ARG(value_add_reference(local_vars.calein_s),value_add_reference(local_vars.calein_u)), global_SCOPEcalein_append_SPACEstring_SPACE_SPACE_ARGto_ARG(value_add_reference(local_vars.calein_t),value_add_reference(local_vars.calein_u)), local_vars.calein_u);
-value_add_reference(result);
-value_remove_reference(local_vars.calein_u);value_remove_reference(local_vars.calein_t);value_remove_reference(local_vars.calein_s);return result;
 }
 struct value *calein_substitutions_SPACEfor_SPACEC_SPACEidentifiers;
 struct value *global_SCOPEcalein_substitute_SPACE_SPACE_ARGfor_ARG(struct value *calein_str, struct value *calein_c){
@@ -1643,44 +1681,6 @@ struct value *calein_declaration_SPACEcontext;
 struct value *calein_initializer_SPACEcontext;
 struct value *calein_nested_SPACEdefinition_SPACEcontext;
 struct value *calein_procedure_SPACEdefinition_SPACEcontext;
-struct value *global_SCOPEcalein__SPACE_ARGcontains_ARG(struct value *calein_list, struct value *calein_elem){
-struct global_SCOPEcalein__SPACE_ARGcontains_ARG_local_vars local_vars;
-local_vars.calein_found = 0;
-local_vars.calein_list = calein_list;
-local_vars.calein_elem = calein_elem;
-struct value *tmp_for_derefs = 0;
-struct value *result = ((local_vars.calein_found = value_add_reference(calein_false)), ({ while (value_boolean_is_true_remove_floating_reference(local_vars.calein_list)) {
-if (value_boolean_is_true_remove_floating_reference(global_SCOPEcalein__SPACE_ARGis_SPACEequal_SPACEto_ARG(value_add_reference(global_SCOPEcalein_first_ARG(value_add_reference(local_vars.calein_list))),value_add_reference(local_vars.calein_elem)))) {
-(tmp_for_derefs = local_vars.calein_list, local_vars.calein_list = value_add_reference(calein_false), value_remove_reference(tmp_for_derefs),local_vars.calein_list);
-(tmp_for_derefs = local_vars.calein_found, local_vars.calein_found = value_add_reference(calein_true), value_remove_reference(tmp_for_derefs),local_vars.calein_found);
-
-} else {
-(tmp_for_derefs = local_vars.calein_list, local_vars.calein_list = value_add_reference(global_SCOPEcalein_second_ARG(value_add_reference(local_vars.calein_list))), value_remove_reference(tmp_for_derefs),local_vars.calein_list);
-}
-}
- 0; }), local_vars.calein_found);
-value_add_reference(result);
-value_remove_reference(local_vars.calein_found);value_remove_reference(local_vars.calein_elem);value_remove_reference(local_vars.calein_list);return result;
-}
-struct value *global_SCOPEcalein_lookup_SPACE_SPACE_ARGin_ARG(struct value *calein_key, struct value *calein_alist){
-struct global_SCOPEcalein_lookup_SPACE_SPACE_ARGin_ARG_local_vars local_vars;
-local_vars.calein_found = 0;
-local_vars.calein_key = calein_key;
-local_vars.calein_alist = calein_alist;
-struct value *tmp_for_derefs = 0;
-struct value *result = ((local_vars.calein_found = value_add_reference(calein_false)), ({ while (value_boolean_is_true_remove_floating_reference(local_vars.calein_alist)) {
-if (value_boolean_is_true_remove_floating_reference(global_SCOPEcalein__SPACE_ARGis_SPACEequal_SPACEto_ARG(value_add_reference(global_SCOPEcalein_first_ARG(value_add_reference(global_SCOPEcalein_first_ARG(value_add_reference(local_vars.calein_alist))))),value_add_reference(local_vars.calein_key)))) {
-(tmp_for_derefs = local_vars.calein_found, local_vars.calein_found = value_add_reference(global_SCOPEcalein_second_ARG(value_add_reference(global_SCOPEcalein_first_ARG(value_add_reference(local_vars.calein_alist))))), value_remove_reference(tmp_for_derefs),local_vars.calein_found);
-(tmp_for_derefs = local_vars.calein_alist, local_vars.calein_alist = value_add_reference(calein_false), value_remove_reference(tmp_for_derefs),local_vars.calein_alist);
-
-} else {
-(tmp_for_derefs = local_vars.calein_alist, local_vars.calein_alist = value_add_reference(global_SCOPEcalein_second_ARG(value_add_reference(local_vars.calein_alist))), value_remove_reference(tmp_for_derefs),local_vars.calein_alist);
-}
-}
- 0; }), local_vars.calein_found);
-value_add_reference(result);
-value_remove_reference(local_vars.calein_found);value_remove_reference(local_vars.calein_alist);value_remove_reference(local_vars.calein_key);return result;
-}
 struct value *calein_variable_SPACElist;
 struct value *calein_function_SPACElist;
 struct value *calein_function_SPACEvariable_SPACElist;
