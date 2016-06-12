@@ -23,37 +23,14 @@ define procedure (unget character (c)) to do {
 	} else (set (column number) to ((column number) - #1)).
 }.
 
-define variable (literal kind) with initial value "literal kind".
-define variable (number kind) with initial value "number kind".
-define variable (sequence kind) with initial value "sequence kind".
-define variable (action kind) with initial value "action kind".
-
-define procedure (make literal (val))
-	to do ((literal kind), (val)).
-define procedure ((p) is a literal)
-	to do ((first (p)) is equal to (literal kind)).
-define procedure (value of literal (lit))
-	to do (second (lit)).
-define procedure (make number (val))
-	to do ((number kind), (val)).
-define procedure ((p) is a number)
-	to do ((first (p)) is equal to (number kind)).
-define procedure (value of number (num))
-	to do (second (num)).
-define procedure (make sequence (list))
-	to do ((sequence kind), (list)).
-define procedure ((p) is a sequence)
-	to do ((first (p)) is equal to (sequence kind)).
-define procedure (items of sequence (seq))
-	to do (second (seq)).
-define procedure (make action (name) with arguments (args))
-	to do ((action kind), ((name), (args))).
-define procedure ((p) is an action)
-	to do ((first (p)) is equal to (action kind)).
-define procedure (name of action (action))
-	to do (first (second (action))).
-define procedure (arguments of action (action))
-	to do (second (second (action))).
+define record (make literal (value of literal))
+	with predicate ((v) is a literal).
+define record (make number (value of number))
+	with predicate ((v) is a number).
+define record (make sequence (items of sequence))
+	with predicate ((v) is a sequence).
+define record (make action (name of action) with arguments (arguments of action))
+	with predicate ((v) is an action).
 
 define procedure (indent (n) times) to do {
 	while (not ((n) is equal to #0)) do {
