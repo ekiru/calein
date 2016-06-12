@@ -62,18 +62,6 @@ define procedure (C string for literal (literal)) to do {
 	string.
 }.
 
-define variable (ir call kind) with initial value "ir call kind".
-define variable (ir procedure kind) with initial value "ir procedure kind".
-define variable (ir sequence kind) with initial value "ir sequence kind".
-define variable (ir if kind) with initial value "ir if kind".
-define variable (ir while kind) with initial value "ir while kind".
-define variable (ir variable kind) with initial value "ir variable kind".
-define variable (ir assignment kind) with initial value "ir assignment kind".
-define variable (ir literal kind) with initial value "ir literal kind".
-define variable (ir number kind) with initial value "ir number kind".
-define variable (ir import kind) with initial value "ir import kind".
-define variable (ir record kind) with initial value "ir record kind".
-
 define record (make ir call (name of ir call) with arguments (arguments of ir call))
 	with predicate ((ir) is an ir call).
 define record (make ir procedure (name of ir procedure) with body (body of ir procedure))
