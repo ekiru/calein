@@ -158,12 +158,14 @@ define procedure ((ir) is an ir import)
 define procedure (ir of ir import (ir))
 	to do (second (ir)).
 
-define procedure (make ir record (defn))
-	to do ((ir record kind), (defn)).
+define procedure (make ir record (defn) with predicate (predicate))
+	to do ((ir record kind), ((defn), (predicate))).
 define procedure ((ir) is an ir record)
 	to do ((first (ir)) is equal to (ir record kind)).
 define procedure (definition of ir record (ir))
-	to do (second (ir)).
+	to do (first (second (ir))).
+define procedure (predicate of ir record (ir))
+	to do (second (second (ir))).
 
 define variable (expression context) with initial value "expression context".
 define variable (statement context) with initial value "statement context".
@@ -336,6 +338,15 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 					set (i) to ((i) + #1).
 				}.
 				append string "return result;\n}\n" to (out).
+
+				set (proc name) to (C ident for action (predicate of ir record (ir))).
+				set (proc name) to (concat (scope) and (concat "_SCOPE" and (proc name))).
+				append string "struct value *" to (out).
+				append string (proc name) to (out).
+				append string "(struct value *v) {\n" to (out).
+				append string "return value_make_boolean(v->kind == value_kind_record && v->u.record.type == " to (out).
+				append string (string of number (record count)) to (out).
+				append string ");\n}" to (out).
 
 				set (args) to (arguments of action (definition of ir record (ir))).
 				set (i) to #0.
