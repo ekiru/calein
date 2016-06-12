@@ -13,6 +13,7 @@ enum value_kind {
 	value_kind_number,
 	value_kind_pair,
 	value_kind_file,
+	value_kind_record,
 };
 
 struct value {
@@ -25,6 +26,11 @@ struct value {
 		int64_t number;
 		struct value *pair[2];
 		FILE *file;
+		struct {
+			uint64_t type;
+			size_t field_count;
+			struct value **fields;
+		} record;
 	} u;
 };
 
@@ -49,6 +55,9 @@ struct value *value_pair_second(struct value *pair);
 
 struct value *value_make_file(FILE *f);
 FILE *value_file_value(struct value *f);
+
+struct value *value_make_record(uint64_t type, size_t fields);
+struct value *value_record_field(struct value *record, uint64_t type, size_t field);
 
 void value_write(struct value *v);
 

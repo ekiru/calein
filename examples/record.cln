@@ -1,0 +1,7 @@
+define record (point at (x of point) and (y of point)).
+
+define variable (origin) with initial value (point at #0 and #0).
+
+write line (origin).
+write line (x of point (origin)).
+write line (y of point (origin)).

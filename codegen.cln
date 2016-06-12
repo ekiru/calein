@@ -72,6 +72,7 @@ define variable (ir assignment kind) with initial value "ir assignment kind".
 define variable (ir literal kind) with initial value "ir literal kind".
 define variable (ir number kind) with initial value "ir number kind".
 define variable (ir import kind) with initial value "ir import kind".
+define variable (ir record kind) with initial value "ir record kind".
 
 define procedure (make ir call (name) with arguments (args))
 	to do ((ir call kind), ((name), (args))).
@@ -155,6 +156,13 @@ define procedure (make ir import (import))
 define procedure ((ir) is an ir import)
 	to do ((first (ir)) is equal to (ir import kind)).
 define procedure (ir of ir import (ir))
+	to do (second (ir)).
+
+define procedure (make ir record (defn))
+	to do ((ir record kind), (defn)).
+define procedure ((ir) is an ir record)
+	to do ((first (ir)) is equal to (ir record kind)).
+define procedure (definition of ir record (ir))
 	to do (second (ir)).
 
 define variable (expression context) with initial value "expression context".
@@ -247,11 +255,14 @@ define procedure (compile error (msg)) to do {
 	set (continue) to (false).
 }.
 
+define variable (record count) with initial value #0.
+
 define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 	define variable (args) with initial value (false).
 	define variable (var scope) with initial value (false).
 	define variable (sep) with initial value (false).
 	define variable (name) with initial value (false).
+	define variable (proc name) with initial value (false).
 	if ((ir) is an ir call) then {
 		if ((context) is an evaluation) then {
 			set (args) to (arguments of ir call (ir)).
@@ -288,8 +299,65 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 					else (false).
 			}.
 		} else (false).
+	} else (if ((ir) is an ir record) then {
+		if ((scope) is equal to (global scope)) then {
+			if ((context) is equal to (declaration context)) then {
+				define variable (record name) with initial value (C ident for action (definition of ir record (ir))).
+				append string "struct value *" to (out).
+				append string (scope) to (out).
+				append string "_SCOPE" to (out).
+				append string (record name) to (out).
+				append string "(" to (out).
+				set (args) to (arguments of action (definition of ir record (ir))).
+				set (sep) to "".
+				define variable (i) with initial value #0.
+				while (args) do {
+					append string (sep) to (out).
+					append string "struct value *arg" to (out).
+					append string (string of number (i)) to (out).
+					set (i) to ((i) + #1).
+					set (args) to (second (args)).
+					set (sep) to ", ".
+				}.
+				define variable (field count) with initial value (i).
+				append string ") {\n" to (out).
+				append string "struct value *result = value_make_record(" to (out).
+				append string (string of number (record count)) to (out).
+				append string ", " to (out).
+				append string (string of number (field count)) to (out).
+				append string ");\n" to (out).
+				set (i) to #0.
+				while (not ((i) is equal to (field count))) do {
+					append string "result->u.record.fields[" to (out).
+					append string (string of number (i)) to (out).
+					append string "] = arg" to (out).
+					append string (string of number (i)) to (out).
+					append string ";\n" to (out).
+					set (i) to ((i) + #1).
+				}.
+				append string "return result;\n}\n" to (out).
+
+				set (args) to (arguments of action (definition of ir record (ir))).
+				set (i) to #0.
+				while (args) do {
+					set (proc name) to (C ident for action (second (first (args)))).
+					set (proc name) to (concat (scope) and (concat "_SCOPE" and (proc name))).
+					append string "struct value *" to (out).
+					append string (proc name) to (out)..
+					append string "_ARG(struct value *record) {\n" to (out).
+					append string "return value_record_field(record, " to (out).
+					append string (string of number (record count)) to (out).
+					append string ", " to (out).
+					append string (string of number (i)) to (out).
+					append string ");\n}" to (out).
+					set (args) to (second (args)).
+					set (i) to ((i) + #1).
+				}.
+				set (record count) to ((record count) + #1).
+			} else (false).
+		} else (compile error "Can only declare records at the top level.").
 	} else (if ((ir) is an ir procedure) then {
-		define variable (proc name) with initial value (C ident for action (name of ir procedure (ir))).
+		set (proc name) to (C ident for action (name of ir procedure (ir))).
 		define variable (adjusted proc name) with initial value (concat (scope) and (concat "_SCOPE" and (proc name))).
 		set (function list) to (((proc name), ((adjusted proc name), (scope))), (function list)).
 		set (proc name) to (adjusted proc name).
@@ -514,5 +582,5 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 				set (import ir) to (second (import ir)).
 			}.
 		} else (compile error "Can only import at top level.").
-	} else (compile error "unrecognized ir kind")))))))))).
+	} else (compile error "unrecognized ir kind"))))))))))).
 }.

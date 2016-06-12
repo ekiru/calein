@@ -49,6 +49,13 @@ bool value_remove_reference(struct value *v) {
 					fclose(v->u.file);
 					v->u.file = 0;
 				}
+				break;
+			case value_kind_record:
+				for (size_t i = 0; i < v->u.record.field_count; i++) {
+					value_remove_reference(v->u.record.fields[i]);
+				}
+				free(v->u.record.fields);
+				break;
 			default:
 				// booleans and numbers have no extra memory and reference nothing.
 				break;
@@ -191,6 +198,34 @@ FILE *value_file_value(struct value *f) {
 	return f->u.file;
 }
 
+struct value *value_make_record(uint64_t type, size_t fields) {
+	struct value *v = allocate(value_kind_record);
+	v->u.record.type = type;
+	v->u.record.field_count = fields;
+	v->u.record.fields = calloc(fields, sizeof v->u.record.fields[0]);
+	if (!v->u.record.fields) {
+		log_error("Failed to allocate field storage for record.");
+		exit(1);
+	}
+	return v;
+}
+
+struct value *value_record_field(struct value *record, uint64_t type, size_t field) {
+	if (!record || record->kind != value_kind_record) {
+		log_error("Attempted to get field of non-record.");
+		exit(1);
+	}
+	if (record->u.record.type != type) {
+		log_error("Attempted to get field from wrong record type.");
+		exit(1);
+	}
+	if (record->u.record.field_count <= field) {
+		log_error("Attempted to get invalid field from record.");
+		exit(1);
+	}
+	return record->u.record.fields[field];
+}
+
 void value_write(struct value *v) {
 	check_value(v);
 	switch (v->kind) {
@@ -214,6 +249,16 @@ void value_write(struct value *v) {
 		break;
 	case value_kind_file:
 		printf("file");
+		break;
+	case value_kind_record:
+		printf("record %llu { ", v->u.record.type);
+		const char *sep = "";
+		for (size_t i = 0; i < v->u.record.field_count; i++) {
+			printf("%s", sep);
+			value_write(v->u.record.fields[i]);
+			sep = " ";
+		}
+		printf(" }");
 		break;
 	default:
 		log_error("Unrecognized value kind %d", v->kind);
@@ -240,6 +285,16 @@ bool value_is_equal_to(struct value *x, struct value *y) {
 			break;
 		case value_kind_file:
 			return x->u.file == y->u.file;
+		case value_kind_record:
+			if (x->u.record.type != y->u.record.type || x->u.record.field_count != y->u.record.field_count) {
+				return false;
+			}
+			for (size_t i = 0; i < x->u.record.field_count; i++) {
+				if (!value_is_equal_to(x->u.record.fields[i], y->u.record.fields[i])) {
+					return false;
+				}
+			}
+			return true;
 		default:
 			log_error("Unrecognized kind %d in (x) is equal to (y).", x->kind);
 			return false;
