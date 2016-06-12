@@ -27,7 +27,7 @@ struct value {
 		struct value *pair[2];
 		FILE *file;
 		struct {
-			uint64_t type;
+			const char *type;
 			size_t field_count;
 			struct value **fields;
 		} record;
@@ -56,8 +56,8 @@ struct value *value_pair_second(struct value *pair);
 struct value *value_make_file(FILE *f);
 FILE *value_file_value(struct value *f);
 
-struct value *value_make_record(uint64_t type, size_t fields);
-struct value *value_record_field(struct value *record, uint64_t type, size_t field);
+struct value *value_make_record(const char *type, size_t fields);
+struct value *value_record_field(struct value *record, const char *type, size_t field);
 
 void value_write(struct value *v);
 

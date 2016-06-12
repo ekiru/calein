@@ -74,98 +74,28 @@ define variable (ir number kind) with initial value "ir number kind".
 define variable (ir import kind) with initial value "ir import kind".
 define variable (ir record kind) with initial value "ir record kind".
 
-define procedure (make ir call (name) with arguments (args))
-	to do ((ir call kind), ((name), (args))).
-define procedure ((ir) is an ir call)
-	to do ((first (ir)) is equal to (ir call kind)).
-define procedure (name of ir call (ir))
-	to do (first (second (ir))).
-define procedure (arguments of ir call (ir))
-	to do (second (second (ir))).
-
-define procedure (make ir procedure (name) with body (body))
-	to do ((ir procedure kind), ((name), (body))).
-define procedure ((ir) is an ir procedure)
-	to do ((first (ir)) is equal to (ir procedure kind)).
-define procedure (name of ir procedure (ir))
-	to do (first (second (ir))).
-define procedure (body of ir procedure (ir))
-	to do (second (second (ir))).
-
-define procedure (make ir sequence (items))
-	to do ((ir sequence kind), (items)).
-define procedure ((ir) is an ir sequence)
-	to do ((first (ir)) is equal to (ir sequence kind)).
-define procedure (items of ir sequence (ir))
-	to do (second (ir)).
-
-define procedure (make ir if (condition) then (then) else (else))
-	to do ((ir if kind), ((condition), ((then), (else)))).
-define procedure ((ir) is an ir if)
-	to do ((first (ir)) is equal to (ir if kind)).
-define procedure (condition of ir if (ir))
-	to do (first (second (ir))).
-define procedure (then of ir if (ir))
-	to do (first (second (second (ir)))).
-define procedure (else of ir if (ir))
-	to do (second (second (second (ir)))).
-
-define procedure (make ir while (condition) with body (body))
-	to do ((ir while kind), ((condition), (body))).
-define procedure ((ir) is an ir while)
-	to do ((first (ir)) is equal to (ir while kind)).
-define procedure (condition of ir while (ir))
-	to do (first (second (ir))).
-define procedure (body of ir while (ir))
-	to do (second (second (ir))).
-
-define procedure (make ir variable (name) with initial value (initial value))
-	to do ((ir variable kind), ((name), (initial value))).
-define procedure ((ir) is an ir variable)
-	to do ((first (ir)) is equal to (ir variable kind)).
-define procedure (name of ir variable (ir))
-	to do (first (second (ir))).
-define procedure (initial value of ir variable (ir))
-	to do (second (second (ir))).
-
-define procedure (make ir assignment (name) with value (value))
-	to do ((ir assignment kind), ((name), (value))).
-define procedure ((ir) is an ir assignment)
-	to do ((first (ir)) is equal to (ir assignment kind)).
-define procedure (name of ir assignment (ir))
-	to do (first (second (ir))).
-define procedure (value of ir assignment (ir))
-	to do (second (second (ir))).
-
-define procedure (make ir literal (literal))
-	to do ((ir literal kind), (literal)).
-define procedure ((ir) is an ir literal)
-	to do ((first (ir)) is equal to (ir literal kind)).
-define procedure (value of ir literal (ir))
-	to do (second (ir)).
-
-define procedure (make ir number (number))
-	to do ((ir number kind), (number)).
-define procedure ((ir) is an ir number)
-	to do ((first (ir)) is equal to (ir number kind)).
-define procedure (value of ir number (ir))
-	to do (second (ir)).
-
-define procedure (make ir import (import))
-	to do ((ir import kind), (import)).
-define procedure ((ir) is an ir import)
-	to do ((first (ir)) is equal to (ir import kind)).
-define procedure (ir of ir import (ir))
-	to do (second (ir)).
-
-define procedure (make ir record (defn) with predicate (predicate))
-	to do ((ir record kind), ((defn), (predicate))).
-define procedure ((ir) is an ir record)
-	to do ((first (ir)) is equal to (ir record kind)).
-define procedure (definition of ir record (ir))
-	to do (first (second (ir))).
-define procedure (predicate of ir record (ir))
-	to do (second (second (ir))).
+define record (make ir call (name of ir call) with arguments (arguments of ir call))
+	with predicate ((ir) is an ir call).
+define record (make ir procedure (name of ir procedure) with body (body of ir procedure))
+	with predicate ((ir) is an ir procedure).
+define record (make ir sequence (items of ir sequence))
+	with predicate ((ir) is an ir sequence).
+define record (make ir if (condition of ir if) then (then of ir if) else (else of ir if))
+	with predicate ((ir) is an ir if).
+define record (make ir while (condition of ir while) with body (body of ir while))
+	with predicate ((ir) is an ir while).
+define record (make ir variable (name of ir variable) with initial value (initial value of ir variable))
+	with predicate ((ir) is an ir variable).
+define record (make ir assignment (name of ir assignment) with value (value of ir assignment))
+	with predicate ((ir) is an ir assignment).
+define record (make ir literal (value of ir literal))
+	with predicate ((ir) is an ir literal).
+define record (make ir number (value of ir number))
+	with predicate ((ir) is an ir number).
+define record (make ir import (ir of ir import))
+	with predicate ((ir) is an ir import).
+define record (make ir record (definition of ir record) with predicate (predicate of ir record))
+	with predicate ((ir) is an ir record).
 
 define variable (expression context) with initial value "expression context".
 define variable (statement context) with initial value "statement context".
@@ -257,8 +187,6 @@ define procedure (compile error (msg)) to do {
 	set (continue) to (false).
 }.
 
-define variable (record count) with initial value #0.
-
 define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 	define variable (args) with initial value (false).
 	define variable (var scope) with initial value (false).
@@ -324,7 +252,7 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 				define variable (field count) with initial value (i).
 				append string ") {\n" to (out).
 				append string "struct value *result = value_make_record(" to (out).
-				append string (string of number (record count)) to (out).
+				append string (C string for literal (record name)) to (out).
 				append string ", " to (out).
 				append string (string of number (field count)) to (out).
 				append string ");\n" to (out).
@@ -344,9 +272,9 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 				append string "struct value *" to (out).
 				append string (proc name) to (out).
 				append string "(struct value *v) {\n" to (out).
-				append string "return value_make_boolean(v->kind == value_kind_record && v->u.record.type == " to (out).
-				append string (string of number (record count)) to (out).
-				append string ");\n}" to (out).
+				append string "return value_make_boolean(v->kind == value_kind_record && !strcmp(v->u.record.type, " to (out).
+				append string (C string for literal (record name)) to (out).
+				append string "));\n}" to (out).
 
 				set (args) to (arguments of action (definition of ir record (ir))).
 				set (i) to #0.
@@ -357,14 +285,13 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 					append string (proc name) to (out)..
 					append string "_ARG(struct value *record) {\n" to (out).
 					append string "return value_record_field(record, " to (out).
-					append string (string of number (record count)) to (out).
+					append string (C string for literal (record name)) to (out).
 					append string ", " to (out).
 					append string (string of number (i)) to (out).
 					append string ");\n}" to (out).
 					set (args) to (second (args)).
 					set (i) to ((i) + #1).
 				}.
-				set (record count) to ((record count) + #1).
 			} else (false).
 		} else (compile error "Can only declare records at the top level.").
 	} else (if ((ir) is an ir procedure) then {
@@ -521,20 +448,20 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 			append string (name) to (out).
 			append string ";\n" to (out).
 		} else (if ((context) is equal to (statement context)) then {
-			emit reference to variable (C ident for action (name of ir assignment (ir)))
+			emit reference to variable (C ident for action (name of ir variable (ir)))
 				from scope (scope) in scope (scope) to (out).
 			append string " = value_add_reference(" to (out).
 			emit (initial value of ir variable (ir)) to (out) in (expression context) with scope (scope).
 			append string ");\n" to (out).
 		} else (if ((context) is equal to (expression context)) then {
 			append string "(" to (out).
-			emit reference to variable (C ident for action (name of ir assignment (ir)))
+			emit reference to variable (C ident for action (name of ir variable (ir)))
 				from scope (scope) in scope (scope) to (out).
 			append string " = value_add_reference(" to (out).
 			emit (initial value of ir variable (ir)) to (out) in (expression context) with scope (scope).
 			append string "))" to (out).
 		} else (if ((context) is equal to (initializer context)) then {
-			emit reference to variable (C ident for action (name of ir assignment (ir)))
+			emit reference to variable (C ident for action (name of ir variable (ir)))
 				from scope (scope) in scope (scope) to (out).
 			append string " = 0;\n" to (out).
 		} else (false)))).

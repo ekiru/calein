@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "err.h"
 
@@ -198,7 +199,7 @@ FILE *value_file_value(struct value *f) {
 	return f->u.file;
 }
 
-struct value *value_make_record(uint64_t type, size_t fields) {
+struct value *value_make_record(const char *type, size_t fields) {
 	struct value *v = allocate(value_kind_record);
 	v->u.record.type = type;
 	v->u.record.field_count = fields;
@@ -210,12 +211,12 @@ struct value *value_make_record(uint64_t type, size_t fields) {
 	return v;
 }
 
-struct value *value_record_field(struct value *record, uint64_t type, size_t field) {
+struct value *value_record_field(struct value *record, const char *type, size_t field) {
 	if (!record || record->kind != value_kind_record) {
 		log_error("Attempted to get field of non-record.");
 		exit(1);
 	}
-	if (record->u.record.type != type) {
+	if (strcmp(record->u.record.type, type)) {
 		log_error("Attempted to get field from wrong record type.");
 		exit(1);
 	}
@@ -251,7 +252,7 @@ void value_write(struct value *v) {
 		printf("file");
 		break;
 	case value_kind_record:
-		printf("record %llu { ", v->u.record.type);
+		printf("record %s { ", v->u.record.type);
 		const char *sep = "";
 		for (size_t i = 0; i < v->u.record.field_count; i++) {
 			printf("%s", sep);
@@ -286,7 +287,7 @@ bool value_is_equal_to(struct value *x, struct value *y) {
 		case value_kind_file:
 			return x->u.file == y->u.file;
 		case value_kind_record:
-			if (x->u.record.type != y->u.record.type || x->u.record.field_count != y->u.record.field_count) {
+			if (strcmp(x->u.record.type, y->u.record.type) || x->u.record.field_count != y->u.record.field_count) {
 				return false;
 			}
 			for (size_t i = 0; i < x->u.record.field_count; i++) {
