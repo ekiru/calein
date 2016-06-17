@@ -1,0 +1,18 @@
+define variable (assertion index) with initial value #0.
+
+define procedure (plan (count) tests) to do {
+	write "1..".
+	write line (count).
+}.
+
+define procedure (assert (assertion) with label (label)) to do {
+	set (assertion index) to ((assertion index) + #1).
+	if (not (assertion)) then (write "not ") else (#0).
+	write "ok ".
+	write (assertion index).
+	write " - ".
+	write line (label).
+}.
+
+define procedure (deny (assertion) with label (label))
+	to do (assert (not (assertion)) with label (label)).
