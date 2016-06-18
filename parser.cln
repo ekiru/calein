@@ -205,21 +205,25 @@ define procedure (parse (at start of expression)) to do {
 			set (again in literal) to (true).
 			set (literal) to #0.
 			set (at start of literal) to (true).
+			define variable (negative) with initial value (false).
 			while (again in literal) do {
 				set (c) to (get character).
 				if ((at start of literal) and (not (c))) then
 					(error "Unexpected EOF at beginning of number")
-				else (if (not ((c) is digit)) then {
+				else (if ((at start of literal) and ((c) is equal to (minus))) then {
+					set (negative) to (true).
+				} else (if (not ((c) is digit)) then {
 					if (c) then (unget character (c)) else (false).
 					set (again in literal) to (false).
-					set (tree) to (make number (literal)).
+					set (tree) to (make number
+						(if (negative) then (#0 - (literal)) else (literal))).
 					if (at start of expression)
 					then (set (tree) to (try parse action after (tree)))
 					else (false).
 				} else {
 					set (literal) to (((literal) * #10) + ((c) - (character 0))).
 					set (at start of literal) to (false).
-				}).
+				})).
 			}.
 		} else (if ((c) is equal to (open brace)) then {
 			set (children) to (false).

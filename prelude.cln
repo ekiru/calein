@@ -66,10 +66,15 @@ define procedure (reverse string (s)) to do {
 
 define procedure (string of number (number)) to do {
 	define variable (s) with initial value "".
+	define variable (negative) with initial value ((number) < #0).
+	if (negative) then {
+		set (number) to (#0 - (number)).
+	} else (false).
 	while (not ((number) is equal to #0)) do {
 		append character (((number) mod #10) + (character 0)) to (s).
 		set (number) to ((number) / #10).
 	}.
+	if (negative) then (append character (minus) to (s)) else (false).
 	if ((s) is equal to "")
 		then "0"
 		else (reverse string (s)).
