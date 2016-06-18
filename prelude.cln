@@ -16,6 +16,8 @@ define variable (minus) with initial value #45.
 define variable (dot) with initial value #46.
 define variable (slash) with initial value #47.
 define variable (character 0) with initial value #48.
+define variable (left angle) with initial value #60.
+define variable (right angle) with initial value #62.
 define variable (backslash) with initial value #92.
 define variable (underscore) with initial value #95.
 define variable (character n) with initial value #110.

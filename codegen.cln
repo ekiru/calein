@@ -11,6 +11,8 @@ substitute "_PLUS" for (plus).
 substitute "_DASH" for (minus).
 substitute "_SLASH" for (slash).
 substitute "_COMMA" for (comma).
+substitute "_LESSER" for (left angle).
+substitute "_GREATER" for (right angle).
 
 define procedure (C ident for action (action)) to do {
 	define variable (name) with initial value (name of action (action)).

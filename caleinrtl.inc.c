@@ -133,3 +133,16 @@ NUMBER_BINOP(_SLASH, /)
 NUMBER_BINOP(mod, %)
 
 #undef NUMBER_BINOP
+
+#define NUMBER_RELOP(name, op) \
+	static struct value *global_SCOPEcalein__SPACE_ARG ## name ## _ARG(struct value *x, struct value *y) { \
+		struct value *res = value_make_boolean(value_number_value(x) op value_number_value(y)); \
+		value_remove_reference(x); \
+		value_remove_reference(y); \
+		return res; \
+	}
+
+NUMBER_RELOP(_LESSER, <)
+NUMBER_RELOP(_GREATER, >)
+
+#undef NUMBER_RELOP
