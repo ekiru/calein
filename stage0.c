@@ -133,6 +133,19 @@ NUMBER_BINOP(_SLASH, /)
 NUMBER_BINOP(mod, %)
 
 #undef NUMBER_BINOP
+
+#define NUMBER_RELOP(name, op) \
+	static struct value *global_SCOPEcalein__SPACE_ARG ## name ## _ARG(struct value *x, struct value *y) { \
+		struct value *res = value_make_boolean(value_number_value(x) op value_number_value(y)); \
+		value_remove_reference(x); \
+		value_remove_reference(y); \
+		return res; \
+	}
+
+NUMBER_RELOP(_LESSER, <)
+NUMBER_RELOP(_GREATER, >)
+
+#undef NUMBER_RELOP
 struct global_SCOPEcalein__SPACE_ARGor_ARG_local_vars {
 struct value *calein_a;
 struct value *calein_b;
@@ -587,6 +600,8 @@ struct value *calein_minus;
 struct value *calein_dot;
 struct value *calein_slash;
 struct value *calein_character_SPACE0;
+struct value *calein_left_SPACEangle;
+struct value *calein_right_SPACEangle;
 struct value *calein_backslash;
 struct value *calein_underscore;
 struct value *calein_character_SPACEn;
@@ -1210,17 +1225,6 @@ global_SCOPEcalein_append_SPACEcharacter_SPACE_SPACE_ARGto_ARG(value_add_referen
 value_add_reference(result);
 value_remove_reference(local_vars.calein_c);value_remove_reference(local_vars.calein_i);value_remove_reference(local_vars.calein_string);value_remove_reference(local_vars.calein_literal);return result;
 }
-struct value *calein_ir_SPACEcall_SPACEkind;
-struct value *calein_ir_SPACEprocedure_SPACEkind;
-struct value *calein_ir_SPACEsequence_SPACEkind;
-struct value *calein_ir_SPACEif_SPACEkind;
-struct value *calein_ir_SPACEwhile_SPACEkind;
-struct value *calein_ir_SPACEvariable_SPACEkind;
-struct value *calein_ir_SPACEassignment_SPACEkind;
-struct value *calein_ir_SPACEliteral_SPACEkind;
-struct value *calein_ir_SPACEnumber_SPACEkind;
-struct value *calein_ir_SPACEimport_SPACEkind;
-struct value *calein_ir_SPACErecord_SPACEkind;
 struct value *calein_expression_SPACEcontext;
 struct value *calein_statement_SPACEcontext;
 struct value *calein_definition_SPACEcontext;
@@ -1520,6 +1524,8 @@ calein_minus = 0;
 calein_dot = 0;
 calein_slash = 0;
 calein_character_SPACE0 = 0;
+calein_left_SPACEangle = 0;
+calein_right_SPACEangle = 0;
 calein_backslash = 0;
 calein_underscore = 0;
 calein_character_SPACEn = 0;
@@ -1530,17 +1536,6 @@ calein_column_SPACEnumber = 0;
 calein_file_SPACEto_SPACEread_SPACEfrom = 0;
 calein_ungotten_SPACEcharacter = 0;
 calein_substitutions_SPACEfor_SPACEC_SPACEidentifiers = 0;
-calein_ir_SPACEcall_SPACEkind = 0;
-calein_ir_SPACEprocedure_SPACEkind = 0;
-calein_ir_SPACEsequence_SPACEkind = 0;
-calein_ir_SPACEif_SPACEkind = 0;
-calein_ir_SPACEwhile_SPACEkind = 0;
-calein_ir_SPACEvariable_SPACEkind = 0;
-calein_ir_SPACEassignment_SPACEkind = 0;
-calein_ir_SPACEliteral_SPACEkind = 0;
-calein_ir_SPACEnumber_SPACEkind = 0;
-calein_ir_SPACEimport_SPACEkind = 0;
-calein_ir_SPACErecord_SPACEkind = 0;
 calein_expression_SPACEcontext = 0;
 calein_statement_SPACEcontext = 0;
 calein_definition_SPACEcontext = 0;
@@ -1573,6 +1568,8 @@ calein_minus = value_add_reference(value_make_number(45));
 calein_dot = value_add_reference(value_make_number(46));
 calein_slash = value_add_reference(value_make_number(47));
 calein_character_SPACE0 = value_add_reference(value_make_number(48));
+calein_left_SPACEangle = value_add_reference(value_make_number(60));
+calein_right_SPACEangle = value_add_reference(value_make_number(62));
 calein_backslash = value_add_reference(value_make_number(92));
 calein_underscore = value_add_reference(value_make_number(95));
 calein_character_SPACEn = value_add_reference(value_make_number(110));
@@ -1590,17 +1587,8 @@ global_SCOPEcalein_substitute_SPACE_SPACE_ARGfor_ARG(value_add_reference(value_m
 global_SCOPEcalein_substitute_SPACE_SPACE_ARGfor_ARG(value_add_reference(value_make_string_from_c_string("_DASH")),value_add_reference(calein_minus));
 global_SCOPEcalein_substitute_SPACE_SPACE_ARGfor_ARG(value_add_reference(value_make_string_from_c_string("_SLASH")),value_add_reference(calein_slash));
 global_SCOPEcalein_substitute_SPACE_SPACE_ARGfor_ARG(value_add_reference(value_make_string_from_c_string("_COMMA")),value_add_reference(calein_comma));
-calein_ir_SPACEcall_SPACEkind = value_add_reference(value_make_string_from_c_string("ir call kind"));
-calein_ir_SPACEprocedure_SPACEkind = value_add_reference(value_make_string_from_c_string("ir procedure kind"));
-calein_ir_SPACEsequence_SPACEkind = value_add_reference(value_make_string_from_c_string("ir sequence kind"));
-calein_ir_SPACEif_SPACEkind = value_add_reference(value_make_string_from_c_string("ir if kind"));
-calein_ir_SPACEwhile_SPACEkind = value_add_reference(value_make_string_from_c_string("ir while kind"));
-calein_ir_SPACEvariable_SPACEkind = value_add_reference(value_make_string_from_c_string("ir variable kind"));
-calein_ir_SPACEassignment_SPACEkind = value_add_reference(value_make_string_from_c_string("ir assignment kind"));
-calein_ir_SPACEliteral_SPACEkind = value_add_reference(value_make_string_from_c_string("ir literal kind"));
-calein_ir_SPACEnumber_SPACEkind = value_add_reference(value_make_string_from_c_string("ir number kind"));
-calein_ir_SPACEimport_SPACEkind = value_add_reference(value_make_string_from_c_string("ir import kind"));
-calein_ir_SPACErecord_SPACEkind = value_add_reference(value_make_string_from_c_string("ir record kind"));
+global_SCOPEcalein_substitute_SPACE_SPACE_ARGfor_ARG(value_add_reference(value_make_string_from_c_string("_LESSER")),value_add_reference(calein_left_SPACEangle));
+global_SCOPEcalein_substitute_SPACE_SPACE_ARGfor_ARG(value_add_reference(value_make_string_from_c_string("_GREATER")),value_add_reference(calein_right_SPACEangle));
 calein_expression_SPACEcontext = value_add_reference(value_make_string_from_c_string("expression context"));
 calein_statement_SPACEcontext = value_add_reference(value_make_string_from_c_string("statement context"));
 calein_definition_SPACEcontext = value_add_reference(value_make_string_from_c_string("definition context"));
