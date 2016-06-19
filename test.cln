@@ -16,3 +16,6 @@ define procedure (assert (assertion) with label (label)) to do {
 
 define procedure (deny (assertion) with label (label))
 	to do (assert (not (assertion)) with label (label)).
+
+define procedure (assert (x) is equal to (y) with label (label)) 
+	to do (assert ((x) is equal to (y)) with label  (label)).
