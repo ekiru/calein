@@ -1,6 +1,5 @@
 import "test".
 import "test".
-import "prelude".
 
 plan #1 tests.
 
