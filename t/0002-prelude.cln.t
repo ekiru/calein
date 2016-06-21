@@ -1,7 +1,7 @@
 import "test".
 import "prelude".
 
-plan #49 tests.
+plan #51 tests.
 
 assert (true) with label "constant true is true".
 deny (false) with label "constant false is false".
@@ -90,3 +90,8 @@ set (assoc list) to (("3", (false)), (assoc list)).
 assert (lookup "1" in (assoc list)) is equal to "c" with label "lookup gets the first value for a key".
 assert (lookup "2" in (assoc list)) is equal to "b" with label "lookup works with only a single value, too".
 assert (lookup "3" in (assoc list)) is equal to (false) with label "lookup returns false if the value for the key is false".
+
+set (assoc list) to (update key "1" to "d" in (assoc list)).
+assert (lookup "1" in (assoc list)) is equal to "d" with label "updating existing keys works in assoc lists".
+set (assoc list) to (update key "4" to "e" in (assoc list)).
+assert (lookup "4" in (assoc list)) is equal to "e" with label "adding new keys to assoc list with update".

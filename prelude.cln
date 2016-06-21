@@ -139,3 +139,27 @@ define procedure (lookup (key) in (alist)) to do {
 	}.
 	found.
 }.
+
+define procedure (update key (key) to (value) in (alist)) to do {
+	define variable (before) with initial value (false).
+	define variable (after) with initial value (alist).
+	define variable (found) with initial value (false).
+	while ((after) and (not (found))) do {
+		if ((first (first (after))) is equal to (key)) then {
+			set (found) to (true).
+			set (after) to (((key), (value)), (second (after))).
+		} else {
+			set (before) to ((first (after)), (before)).
+			set (after) to (second (after)).
+		}.
+	}.
+	if (found) then {
+		while (before) do {
+			set (after) to ((first (before)), (after)).
+			set (before) to (second (before)).
+		}.
+		after.
+	} else {
+		((key), (value)), (alist).
+	}.
+}.
