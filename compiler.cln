@@ -1,6 +1,13 @@
-import "prelude".
 import "parser".
 import "codegen".
+
+define procedure (make ir import for (file name)) to do {
+	define variable (f) with initial value (open file (file name) for reading).
+	define variable (import) with initial value
+		(make ir import (file name) with ir (ir of syntax trees (parse file (f)))).
+	close file (f).
+	import.
+}.
 
 define procedure (compile (tree)) to do {
 	if ((tree) is an action) then {
@@ -31,11 +38,7 @@ define procedure (compile (tree)) to do {
 			if ((second ((args) at #0)) is a literal) then {
 				define variable (file name) with initial value 
 					(concat (value of literal (second ((args) at #0))) and ".cln").
-				define variable (f) with initial value (open file (file name) for reading).
-				define variable (import) with initial value
-					(make ir import (file name) with ir (ir of syntax trees (parse file (f)))).
-				close file (f).
-				import.
+				make ir import for (file name).
 			} else (compile error "import takes only literal arguments.").
 		} else {
 			while (args) do {
@@ -77,6 +80,10 @@ define procedure (compile file (f)) to do {
 	define variable (ir) with initial value (false).
 	define variable (irs) with initial value (ir of syntax trees (parse file (f))).
 
+	if ((f) is equal to (standard input)) then {
+		set (irs) to ((make ir import for "prelude.cln"), (irs)).
+	} else (false).
+
 	while (irs) do {
 		set (ir) to (first (irs)).	
 		if (ir) then {
@@ -88,11 +95,12 @@ define procedure (compile file (f)) to do {
 		set (irs) to (second (irs)).
 	}.
 
-	write line "#include \"caleinrtl.inc.c\"".
 	write line (declarations).
 	write line (definitions).
 	(initializers), (main).
 }.
+
+write line "#include \"caleinrtl.inc.c\"".
 
 define variable (main module)
 with initial value (compile file (standard input)).
