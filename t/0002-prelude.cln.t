@@ -1,5 +1,4 @@
 import "test".
-import "prelude".
 
 plan #51 tests.
 
