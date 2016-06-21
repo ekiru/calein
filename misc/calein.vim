@@ -3,7 +3,7 @@ if exists("b:current_syntax")
 endif
 
 syn match caleinNumber '#-\?\d\+'
-syn region caleinString start='"' end='"' skip='\\"'
+syn region caleinString start='"' end='"' skip='\\["\\]'
 syn match caleinSequenceDelimiter '[{}]'
 syn match caleinSubActionDelimiter '[()]'
 syn match caleinStatementTerminator '\.'

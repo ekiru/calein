@@ -41,6 +41,10 @@ define procedure ((a) or (b) or (c))
 	to do (((a) or (b)) or (c)).
 define procedure ((a) or (b) or (c) or (d))
 	to do (((a) or (b)) or ((c) or (d))).
+define procedure ((a) or (b) or (c) or (d) or (e))
+	to do (((a) or (b) or (c) or (d)) or (e)).
+define procedure ((a) or (b) or (c) or (d) or (e) or (f))
+	to do (((a) or (b) or (c) or (d)) or (e) or (f)).
 
 define procedure ((x) is between (a) and (b)) to do {
 	define variable (found) with initial value (false).
