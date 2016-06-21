@@ -33,7 +33,7 @@ define procedure (compile (tree)) to do {
 					(concat (value of literal (second ((args) at #0))) and ".cln").
 				define variable (f) with initial value (open file (file name) for reading).
 				define variable (import) with initial value
-					(make ir import (ir of syntax trees (parse file (f)))).
+					(make ir import (file name) with ir (ir of syntax trees (parse file (f)))).
 				close file (f).
 				import.
 			} else (compile error "import takes only literal arguments.").

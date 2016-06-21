@@ -82,7 +82,7 @@ define record (make ir literal (value of ir literal))
 	with predicate ((ir) is an ir literal).
 define record (make ir number (value of ir number))
 	with predicate ((ir) is an ir number).
-define record (make ir import (ir of ir import))
+define record (make ir import (name of ir import) with ir (ir of ir import))
 	with predicate ((ir) is an ir import).
 define record (make ir record (definition of ir record) with predicate (predicate of ir record))
 	with predicate ((ir) is an ir record).
@@ -98,6 +98,7 @@ define variable (procedure definition context) with initial value "procedure def
 define variable (variable list) with initial value (false).
 define variable (function list) with initial value (false).
 define variable (function variable list) with initial value (false).
+define variable (module list by context) with initial value (false).
 
 define procedure (register variable (var) in scope (scope)) to do {
 	define variable (old scope) with initial value (lookup (var) in (variable list)).
@@ -505,6 +506,21 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 	} else (if ((ir) is an ir import) then {
 		if ((scope) is equal to (global scope)) then {
 			define variable (import ir) with initial value (ir of ir import (ir)).
+			define variable (module list)
+				with initial value (lookup (context) in (module list by context)).
+			if (module list) then {
+				if ((module list) contains (name of ir import (ir))) then {
+					set (import ir) to (false).
+				} else {
+					set (module list by context) to
+						(update key (context) to ((name of ir import (ir)), (module list))
+							in (module list by context)).
+				}.
+			} else {
+				set (module list by context) to
+					(update key (context) to ((name of ir import (ir)), (false))
+						in (module list by context)).
+			}.
 			while (import ir) do {
 				emit (first (import ir)) to (out) in (context) with scope (scope).
 				set (import ir) to (second (import ir)).
