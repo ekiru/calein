@@ -52,6 +52,9 @@ define procedure (compile (tree)) to do {
 		define variable (items) with initial value (items of sequence (tree)).
 		while (items) do {
 			set (ir items) to ((compile (first (items))), (ir items)).
+			if (not (first (ir items)))
+				then (set (ir items) to (second (ir items)))
+				else (false).
 			set (items) to (second (items)).
 		}.
 		make ir sequence (reverse list (ir items)).

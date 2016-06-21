@@ -1,3 +1,5 @@
+import "parser".
+
 define variable (substitutions for C identifiers)
 	with initial value (false).
 define procedure (substitute (str) for (c)) to do {
