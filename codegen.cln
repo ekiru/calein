@@ -464,3 +464,21 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 		} else (compile error "Can only import at top level.").
 	} else (compile error "unrecognized ir kind"))))))))))).
 }.
+
+define procedure (write derefs for globals) to do {
+	define variable (vars) with initial value (variable list).
+	define variable (var) with initial value (false).
+	define variable (s) with initial value (false).
+	while (vars) do {
+		set (s) to "".
+		set (var) to (first (vars)).
+		if ((second (var)) is equal to (global scope)) then {
+			write "value_remove_reference(".
+			emit reference to variable (first (var))
+				from scope (global scope) in scope (global scope) to (s).
+			write (s).
+			write line ");".
+		} else (false).
+		set (vars) to (second (vars)).
+	}.
+}.

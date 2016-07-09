@@ -110,4 +110,5 @@ write line "void caleinmain(void) {".
 write line "struct value *tmp_for_derefs = 0;\n".
 write line (first (main module)).
 write (second (main module)).
+write derefs for globals.
 write line "}".
