@@ -83,9 +83,7 @@ define procedure (compile file (f)) to do {
 	define variable (ir) with initial value (false).
 	define variable (irs) with initial value (ir of syntax trees (parse file (f))).
 
-	if ((f) is equal to (standard input)) then {
-		set (irs) to ((make ir import for "prelude.cln"), (irs)).
-	} else (false).
+	set (irs) to ((make ir import for "prelude.cln"), (irs)).
 
 	while (irs) do {
 		set (ir) to (first (irs)).	
