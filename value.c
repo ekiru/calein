@@ -186,6 +186,10 @@ struct value *value_pair_second(struct value *pair) {
 }
 
 struct value *value_make_file(FILE *f) {
+	if (!f) {
+		log_error("Attempted to create null file.");
+		exit(1);
+	}
 	struct value *v = allocate(value_kind_file);
 	v->u.file = f;
 	return v;

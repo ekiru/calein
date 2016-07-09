@@ -103,8 +103,15 @@ define procedure (compile file (f)) to do {
 
 write line "#include \"caleinrtl.inc.c\"".
 
-define variable (main module)
-with initial value (compile file (standard input)).
+define variable (main module) with initial value (false).
+define variable (f) with initial value (false).
+if (program arguments) then {
+	set (f) to (open file (first (program arguments)) for reading).
+	set (main module) to (compile file (f)).
+	close file (f).
+} else {
+	set (main module) to (compile file (standard input)).
+}.
 
 write line "void caleinmain(void) {".
 write line "struct value *tmp_for_derefs = 0;\n".

@@ -52,6 +52,9 @@ define procedure ((context) is an evaluation)
 
 define variable (global scope) with initial value "global".
 
+register variable "calein_program_SPACEarguments"
+	in scope (global scope).
+
 define procedure (emit reference to variable (name) from scope (var scope) in scope (scope) to (out)) to do {
 	if ((var scope) is equal to (global scope))
 		then (append string (name) to (out))

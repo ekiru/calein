@@ -147,11 +147,20 @@ NUMBER_RELOP(_GREATER, >)
 
 #undef NUMBER_RELOP
 
+static struct value *calein_program_SPACEarguments = 0;
+
 void caleinmain();
 
 int main(int argc, char **argv) {
 	char *memdebug_env = getenv("CALEIN_MEMDEBUG");
 	bool memdebug = memdebug_env && 0 == strcmp(memdebug_env, "1");
+	calein_program_SPACEarguments = value_make_boolean(false);
+	for (int i = argc - 1; i > 0; i--) {
+		struct value *arg = value_make_string_from_c_string(argv[i]);
+		calein_program_SPACEarguments =
+			value_make_pair(arg, calein_program_SPACEarguments);
+	}
+	value_add_reference(calein_program_SPACEarguments);
 	caleinmain();
 	if (memdebug) {
 		fprintf(stderr, "%lu\n", (unsigned long) value_allocated_object_count());
