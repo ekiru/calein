@@ -146,3 +146,16 @@ NUMBER_RELOP(_LESSER, <)
 NUMBER_RELOP(_GREATER, >)
 
 #undef NUMBER_RELOP
+
+void caleinmain();
+
+int main(int argc, char **argv) {
+	char *memdebug_env = getenv("CALEIN_MEMDEBUG");
+	bool memdebug = memdebug_env && 0 == strcmp(memdebug_env, "1");
+	caleinmain();
+	if (memdebug) {
+		fprintf(stderr, "%lu\n", (unsigned long) value_allocated_object_count());
+	}
+	return 0;
+}
+

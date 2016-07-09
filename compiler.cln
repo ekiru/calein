@@ -108,9 +108,8 @@ write line "#include \"caleinrtl.inc.c\"".
 define variable (main module)
 with initial value (compile file (standard input)).
 
-write line "int main() {".
+write line "void caleinmain(void) {".
 write line "struct value *tmp_for_derefs = 0;\n".
 write line (first (main module)).
 write (second (main module)).
-write line "return 0;".
 write line "}".
