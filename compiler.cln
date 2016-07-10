@@ -110,6 +110,13 @@ define procedure (compile file (f) with name (name)) to do {
 
 write line "#include \"caleinrtl.inc.c\"".
 
+if (program arguments) then {
+	if ((first (program arguments)) is equal to "-g") then {
+		set (program arguments) to (second (program arguments)).
+		set (source level debugging) to (false).
+	} else (false).
+} else (false).
+
 define variable (main module) with initial value (false).
 define variable (f) with initial value (false).
 if (program arguments) then {

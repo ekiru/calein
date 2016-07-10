@@ -1,11 +1,16 @@
 import "c-utils".
 
+define variable (source level debugging)
+	with initial value (true).
+
 define procedure (emit position (pos) to (out)) to do {
-	append string "\n#line " to (out).
-	append string (string of number (line of position (pos))) to (out).
-	append string " " to (out).
-	append string (C string for literal (file of position (pos))) to (out).
-	append character (new line) to (out).
+	if (source level debugging) then {
+		append string "\n#line " to (out).
+		append string (string of number (line of position (pos))) to (out).
+		append string " " to (out).
+		append string (C string for literal (file of position (pos))) to (out).
+		append character (new line) to (out).
+	} else (false).
 }.
 
 define record (make ir call (name of ir call) with arguments (arguments of ir call) at (position of ir call))
