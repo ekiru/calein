@@ -37,6 +37,7 @@ struct value {
 size_t value_allocated_object_count(void);
 struct value *value_add_reference(struct value *v);
 bool value_remove_reference(struct value *v);
+void value_float_result(struct value *v);
 
 struct value *value_make_string(const struct string *s);
 struct value *value_make_string_from_c_string(const char *s);

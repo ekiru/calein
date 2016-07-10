@@ -306,7 +306,11 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 				emit (body of ir procedure (ir)) to (out) in (expression context) with scope (proc name).
 				append string ";\nvalue_add_reference(result);\n" to (out).
 				define variable (vars) with initial value (variable list).
+				write "//".
+				write line (proc name).
 				while (vars) do {
+					write "//	".
+					write line (first (vars)).
 					if ((second (first (vars))) is equal to (proc name)) then {
 						append string "value_remove_reference(" to (out).
 						emit reference to variable (first (first (vars)))
@@ -315,6 +319,7 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 						set (vars) to (second (vars)).
 					} else (set (vars) to (false)).
 				}.
+				append string "value_float_result(result);\n" to (out).
 				append string "return result;\n}\n" to (out).
 			}.
 			if ((context) is equal to (declaration context))

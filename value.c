@@ -70,6 +70,16 @@ bool value_remove_reference(struct value *v) {
 	return true;
 }
 
+void value_float_result(struct value *v) {
+	if (v) {
+		if (v->ref_count == 1) {
+			v->floating = true;
+		} else {
+			value_remove_reference(v);
+		}
+	}
+}
+
 static void check_value(struct value *v) {
 #ifdef CALEIN_REF_DEBUG
 	if (!v->ref_count) {
