@@ -11,7 +11,7 @@ compiler: compiler.o err.o str.o value.o
 compiler.o: caleinrtl.inc.c
 
 compiler.c: compiler.cln stage0 codegen.cln parser.cln prelude.cln
-	./stage0 compiler.cln < compiler.cln > compiler.c
+	./stage0 compiler.cln > compiler.c
 
 stage0: stage0.c err.o str.o value.o
 
