@@ -6,13 +6,17 @@
 #include "value.h"
 
 static struct value *global_SCOPEcalein__COMMA_ARG_ARG(struct value *x, struct value *y) {
-	return value_make_pair(x, y);
+	struct value *res = value_make_pair(x, y);
+	value_remove_reference(x);
+	value_remove_reference(y);
+	return res;
 }
 
 static struct value *global_SCOPEcalein_first_ARG(struct value *p) {
 	struct value *res = value_pair_first(p);
 	value_add_reference(res);
 	value_remove_reference(p);
+	value_float_result(res);
 	return res;
 }
 
@@ -20,6 +24,7 @@ static struct value *global_SCOPEcalein_second_ARG(struct value *p) {
 	struct value *res = value_pair_second(p);
 	value_add_reference(res);
 	value_remove_reference(p);
+	value_float_result(res);
 	return res;
 }
 
