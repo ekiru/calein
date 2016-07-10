@@ -216,9 +216,10 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 				append string "struct value *" to (out).
 				append string (proc name) to (out).
 				append string "(struct value *v) {\n" to (out).
-				append string "return value_make_boolean(v->kind == value_kind_record && !strcmp(v->u.record.type, " to (out).
+				append string "struct value *result = value_make_boolean(v->kind == value_kind_record && !strcmp(v->u.record.type, " to (out).
 				append string (C string for literal (record name)) to (out).
-				append string "));\n}" to (out).
+				append string "));\n" to (out).
+				append string "value_remove_reference(v);\nreturn result;\n}" to (out).
 
 				set (args) to (arguments of action (definition of ir record (ir))).
 				set (i) to #0.
@@ -228,11 +229,12 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 					append string "struct value *" to (out).
 					append string (proc name) to (out)..
 					append string "_ARG(struct value *record) {\n" to (out).
-					append string "return value_record_field(record, " to (out).
+					append string "struct value *result = value_record_field(record, " to (out).
 					append string (C string for literal (record name)) to (out).
 					append string ", " to (out).
 					append string (string of number (i)) to (out).
-					append string ");\n}" to (out).
+					append string ");\n" to (out).
+					append string "value_remove_reference(record);\nreturn result;\n}" to (out).
 					set (args) to (second (args)).
 					set (i) to ((i) + #1).
 				}.
