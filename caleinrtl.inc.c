@@ -98,7 +98,9 @@ static struct value *global_SCOPEcalein_read_SPACEcharacter(void) {
 }
 
 static struct value *global_SCOPEcalein_read_SPACEcharacter_SPACEfrom_ARG(struct value *f) {
-	return char_of_int(getc(value_file_value(f)));
+	struct value *res = char_of_int(getc(value_file_value(f)));
+	value_remove_reference(f);
+	return res;
 }
 
 static struct value *global_SCOPEcalein_open_SPACEfile_SPACE_SPACE_ARGfor_SPACEreading(struct value *name) {
@@ -107,6 +109,7 @@ static struct value *global_SCOPEcalein_open_SPACEfile_SPACE_SPACE_ARGfor_SPACEr
 
 static struct value *global_SCOPEcalein_close_SPACEfile_ARG(struct value *f) {
 	fclose(value_file_value(f));
+	value_remove_reference(f);
 	return 0;
 }
 
