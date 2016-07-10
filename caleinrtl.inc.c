@@ -104,7 +104,9 @@ static struct value *global_SCOPEcalein_read_SPACEcharacter_SPACEfrom_ARG(struct
 }
 
 static struct value *global_SCOPEcalein_open_SPACEfile_SPACE_SPACE_ARGfor_SPACEreading(struct value *name) {
-	return value_make_file(fopen(value_string_value(name)->data, "r"));
+	struct value *res = value_make_file(fopen(value_string_value(name)->data, "r"));
+	value_remove_reference(name);
+	return res;
 }
 
 static struct value *global_SCOPEcalein_close_SPACEfile_ARG(struct value *f) {
