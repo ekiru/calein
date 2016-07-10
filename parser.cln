@@ -1,5 +1,6 @@
 define variable (line number) with initial value #1.
 define variable (column number) with initial value #1.
+define variable (file name) with initial value "-".
 
 define variable (file to read from) with initial value (standard input).
 define variable (ungotten character) with initial value (false).
@@ -23,14 +24,28 @@ define procedure (unget character (c)) to do {
 	} else (set (column number) to ((column number) - #1)).
 }.
 
-define record (make literal (value of literal))
+define record (position at line (line of position) in file (file of position))
+	with predicate ((v) is a position).
+define procedure (current position) to do {
+	position at line (line number) in file (file name).
+}.
+
+define record (make literal (value of literal) at (position of literal))
 	with predicate ((v) is a literal).
-define record (make number (value of number))
+define procedure (make literal (val))
+	to do (make literal (val) at (current position)).
+define record (make number (value of number) at (position of number))
 	with predicate ((v) is a number).
-define record (make sequence (items of sequence))
+define procedure (make number (val))
+	to do (make number (val) at (current position)).
+define record (make sequence (items of sequence) at (position of sequence))
 	with predicate ((v) is a sequence).
-define record (make action (name of action) with arguments (arguments of action))
+define procedure (make sequence (items))
+	to do (make sequence (items) at (current position)).
+define record (make action (name of action) with arguments (arguments of action) at (position of action))
 	with predicate ((v) is an action).
+define procedure (make action (name) with arguments (args))
+	to do (make action (name) with arguments (args) at (current position)).
 
 define procedure (indent (n) times) to do {
 	while (not ((n) is equal to #0)) do {
@@ -254,14 +269,18 @@ define procedure (parse (at start of expression)) to do {
 	tree.
 }.
 
-define procedure (parse file (f)) to do {
+define procedure (parse file (f) with name (name)) to do {
 	define variable (old file) with initial value (file to read from).
+	define variable (old file name) with initial value (file name).
 	define variable (old line number) with initial value (line number).
 	define variable (old column number) with initial value (column number).
 	define variable (old ungotten) with initial value (ungotten character).
 	define variable (reversed syntax trees) with initial value (false).
 	define variable (tree) with initial value (false).
 	set (file to read from) to (f).
+	set (file name) to (name).
+	set (line number) to #1.
+	set (column number) to #1.
 	while {
 		set (tree) to (parse (true)).
 		tree.
@@ -269,6 +288,7 @@ define procedure (parse file (f)) to do {
 		set (reversed syntax trees) to ((tree), (reversed syntax trees)).
 	}.
 	set (file to read from) to (old file).
+	set (file name) to (old file name).
 	set (line number) to (old line number).
 	set (column number) to (old column number).
 	set (ungotten character) to (old ungotten).

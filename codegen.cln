@@ -1,26 +1,34 @@
 import "c-utils".
 
-define record (make ir call (name of ir call) with arguments (arguments of ir call))
+define procedure (emit position (pos) to (out)) to do {
+	append string "\n#line " to (out).
+	append string (string of number (line of position (pos))) to (out).
+	append string " " to (out).
+	append string (C string for literal (file of position (pos))) to (out).
+	append character (new line) to (out).
+}.
+
+define record (make ir call (name of ir call) with arguments (arguments of ir call) at (position of ir call))
 	with predicate ((ir) is an ir call).
-define record (make ir procedure (name of ir procedure) with body (body of ir procedure))
+define record (make ir procedure (name of ir procedure) with body (body of ir procedure) at (position of ir procedure))
 	with predicate ((ir) is an ir procedure).
-define record (make ir sequence (items of ir sequence))
+define record (make ir sequence (items of ir sequence) at (position of ir sequence))
 	with predicate ((ir) is an ir sequence).
-define record (make ir if (condition of ir if) then (then of ir if) else (else of ir if))
+define record (make ir if (condition of ir if) then (then of ir if) else (else of ir if) at (position of ir if))
 	with predicate ((ir) is an ir if).
-define record (make ir while (condition of ir while) with body (body of ir while))
+define record (make ir while (condition of ir while) with body (body of ir while) at (position of ir while))
 	with predicate ((ir) is an ir while).
-define record (make ir variable (name of ir variable) with initial value (initial value of ir variable))
+define record (make ir variable (name of ir variable) with initial value (initial value of ir variable) at (position of ir variable))
 	with predicate ((ir) is an ir variable).
-define record (make ir assignment (name of ir assignment) with value (value of ir assignment))
+define record (make ir assignment (name of ir assignment) with value (value of ir assignment) at (position of ir assignment))
 	with predicate ((ir) is an ir assignment).
-define record (make ir literal (value of ir literal))
+define record (make ir literal (value of ir literal) at (position of ir literal))
 	with predicate ((ir) is an ir literal).
-define record (make ir number (value of ir number))
+define record (make ir number (value of ir number) at (position of ir number))
 	with predicate ((ir) is an ir number).
-define record (make ir import (name of ir import) with ir (ir of ir import))
+define record (make ir import (name of ir import) with ir (ir of ir import) at (position of ir import))
 	with predicate ((ir) is an ir import).
-define record (make ir record (definition of ir record) with predicate (predicate of ir record))
+define record (make ir record (definition of ir record) with predicate (predicate of ir record) at (position of ir record))
 	with predicate ((ir) is an ir record).
 
 define variable (expression context) with initial value "expression context".
@@ -125,6 +133,7 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 	define variable (proc name) with initial value (false).
 	if ((ir) is an ir call) then {
 		if ((context) is an evaluation) then {
+			emit position (position of ir call (ir)) to (out).
 			set (args) to (arguments of ir call (ir)).
 			set (name) to (name of ir call (ir)).
 			set (var scope) to (lookup (name) in (variable list)).
@@ -400,6 +409,7 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 		set (var scope) to (lookup (name) in (variable list)).
 		if (var scope) then {
 			if ((context) is an evaluation) then {
+				emit position (position of ir assignment (ir)) to (out).
 				append string "(tmp_for_derefs = " to (out).
 				emit reference to variable (name)
 					from scope (var scope) in scope (scope) to (out).
@@ -426,6 +436,7 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 		}.
 	} else (if ((ir) is an ir literal) then {
 		if ((context) is an evaluation) then {
+			emit position (position of ir literal (ir)) to (out).
 			append string "value_make_string_from_c_string(" to (out).
 			append string (value of ir literal (ir)) to (out).
 			append string ")" to (out).
@@ -435,6 +446,7 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 		} else (false).
 	} else (if ((ir) is an ir number) then {
 		if ((context) is an evaluation) then {
+			emit position (position of ir number (ir)) to (out).
 			append string "value_make_number(" to (out).
 			append string (string of number (value of ir number (ir))) to (out).
 			append string ")" to (out).

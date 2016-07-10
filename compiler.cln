@@ -1,10 +1,10 @@
 import "parser".
 import "codegen".
 
-define procedure (make ir import for (file name)) to do {
+define procedure (make ir import for (file name) at (pos)) to do {
 	define variable (f) with initial value (open file (file name) for reading).
 	define variable (import) with initial value
-		(make ir import (file name) with ir (ir of syntax trees (parse file (f)))).
+		(make ir import (file name) with ir (ir of syntax trees (parse file (f) with name (file name))) at (pos)).
 	close file (f).
 	import.
 }.
@@ -13,39 +13,46 @@ define procedure (compile (tree)) to do {
 	if ((tree) is an action) then {
 		define variable (ir args) with initial value (false).
 		define variable (args) with initial value (arguments of action (tree)).
+		define variable (pos) with initial value (position of action (tree)).
 		if ((name of action (tree)) is equal to "note")
 			then (false)
 		else (if ((name of action (tree)) is equal to "define record  with predicate")
 			then (make ir record (second ((args) at #0))
-				with predicate (second ((args) at #1)))
+				with predicate (second ((args) at #1))
+				at (pos))
 		else (if ((name of action (tree)) is equal to "define procedure  to do")
 			then (make ir procedure (second ((args) at #0))
-				with body (compile (second ((args) at #1))))
+				with body (compile (second ((args) at #1)))
+				at (pos))
 		else (if ((name of action (tree)) is equal to "define variable  with initial value")
 			then (make ir variable (second ((args) at #0))
-				with initial value (compile (second ((args) at #1))))
+				with initial value (compile (second ((args) at #1)))
+				at (pos))
 		else (if ((name of action (tree)) is equal to "set  to")
 			then (make ir assignment (second ((args) at #0))
-				with value (compile (second ((args) at #1))))
+				with value (compile (second ((args) at #1)))
+				at (pos))
 		else (if ((name of action (tree)) is equal to "if  then  else")
 			then (make ir if (compile (second ((args) at #0)))
 				then (compile (second ((args) at #1)))
-				else (compile (second ((args) at #2))))
+				else (compile (second ((args) at #2)))
+				at (pos))
 		else (if ((name of action (tree)) is equal to "while  do")
 			then (make ir while (compile (second ((args) at #0)))
-				with body (compile (second ((args) at #1))))
+				with body (compile (second ((args) at #1)))
+				at (pos))
 		else (if (((name of action (tree)) is equal to "import") and (args)) then {
 			if ((second ((args) at #0)) is a literal) then {
 				define variable (file name) with initial value 
 					(concat (value of literal (second ((args) at #0))) and ".cln").
-				make ir import for (file name).
+				make ir import for (file name) at (pos).
 			} else (compile error "import takes only literal arguments.").
 		} else {
 			while (args) do {
 				set (ir args) to ((compile (second (first (args)))), (ir args)).
 				set (args) to (second (args)).
 			}.
-			make ir call (C ident for action (tree)) with arguments (reverse list (ir args)).
+			make ir call (C ident for action (tree)) with arguments (reverse list (ir args)) at (pos).
 		}))))))).
 	} else (if ((tree) is a sequence) then {
 		define variable (ir items) with initial value (false).
@@ -57,11 +64,11 @@ define procedure (compile (tree)) to do {
 				else (false).
 			set (items) to (second (items)).
 		}.
-		make ir sequence (reverse list (ir items)).
+		make ir sequence (reverse list (ir items)) at (position of sequence (tree)).
 	} else (if ((tree) is a number) then {
-		make ir number (value of number (tree)).
+		make ir number (value of number (tree)) at (position of number (tree)).
 	} else (if ((tree) is a literal) then {
-		make ir literal (C string for literal (value of literal (tree))).
+		make ir literal (C string for literal (value of literal (tree))) at (position of literal (tree)).
 	} else (compile error "unsupported kind of tree")))).
 }.
 
@@ -74,16 +81,16 @@ define procedure (ir of syntax trees (trees)) to do {
 	reverse list (irs).
 }.
 
-define procedure (compile file (f)) to do {
+define procedure (compile file (f) with name (name)) to do {
 	define variable (declarations) with initial value "".
 	define variable (definitions) with initial value "".
 	define variable (initializers) with initial value "".
 	define variable (main) with initial value "".
 
 	define variable (ir) with initial value (false).
-	define variable (irs) with initial value (ir of syntax trees (parse file (f))).
+	define variable (irs) with initial value (ir of syntax trees (parse file (f) with name (name))).
 
-	set (irs) to ((make ir import for "prelude.cln"), (irs)).
+	set (irs) to ((make ir import for "prelude.cln" at (position at line #0 in file (name))), (irs)).
 
 	while (irs) do {
 		set (ir) to (first (irs)).	
@@ -107,10 +114,10 @@ define variable (main module) with initial value (false).
 define variable (f) with initial value (false).
 if (program arguments) then {
 	set (f) to (open file (first (program arguments)) for reading).
-	set (main module) to (compile file (f)).
+	set (main module) to (compile file (f) with name (first (program arguments))).
 	close file (f).
 } else {
-	set (main module) to (compile file (standard input)).
+	set (main module) to (compile file (standard input) with name "<stdin>").
 }.
 
 write line "void caleinmain(void) {".
