@@ -174,6 +174,7 @@ int main(int argc, char **argv) {
 	caleinmain();
 	if (memdebug) {
 		fprintf(stderr, "%lu\n", (unsigned long) value_allocated_object_count());
+		value_display_remaining_values();
 	}
 	return 0;
 }

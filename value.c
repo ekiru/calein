@@ -12,6 +12,26 @@ size_t value_allocated_object_count(void) {
 	return allocated_objects;
 }
 
+#ifdef CALEIN_REF_DEBUG
+static struct value *last_allocated_value = 0;
+#endif
+
+void value_display_remaining_values(void) {
+#ifdef CALEIN_REF_DEBUG
+	for (struct value *v = last_allocated_value; v; v = v->prev) {
+		printf("// still allocated: ");
+		if (v->floating) {
+			printf("floating ");
+		} else {
+			printf("%d ", v->ref_count);
+		}
+		value_write(v);
+		printf("\n");
+		v = v->prev;
+	}
+#endif
+}
+
 struct value *value_add_reference(struct value *v) {
 	if (v) {
 		if (v->floating) {
@@ -61,7 +81,17 @@ bool value_remove_reference(struct value *v) {
 				// booleans and numbers have no extra memory and reference nothing.
 				break;
 			}
-#ifndef CALEIN_REF_DEBUG
+#ifdef CALEIN_REF_DEBUG
+			if (v->prev) {
+				v->prev->next = v->next;
+			}
+			if (v->next) {
+				v->next->prev = v->prev;
+			}
+			if (v == last_allocated_value) {
+				last_allocated_value = v->prev;
+			}
+#else
 			free(v);
 #endif
 			allocated_objects--;
@@ -95,6 +125,13 @@ static struct value *allocate(enum value_kind kind) {
 		log_error("Failed to allocate memory for value.");
 		exit(1);
 	}
+#ifdef CALEIN_REF_DEBUG
+	res->prev = last_allocated_value;
+	last_allocated_value = res;
+	if (res->prev) {
+		res->prev->next = res;
+	}
+#endif
 	res->kind = kind;
 	res->ref_count = 1;
 	res->floating = true;

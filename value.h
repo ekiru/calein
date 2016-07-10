@@ -20,6 +20,9 @@ struct value {
 	enum value_kind kind;
 	bool floating;
 	uint32_t ref_count;
+#ifdef CALEIN_REF_DEBUG
+	struct value *prev, *next;
+#endif
 	union {
 		struct string string;
 		bool boolean;
@@ -33,6 +36,9 @@ struct value {
 		} record;
 	} u;
 };
+
+// does nothing unless CALEIN_REF_DEBUG is defined
+void value_display_remaining_values(void);
 
 size_t value_allocated_object_count(void);
 struct value *value_add_reference(struct value *v);
