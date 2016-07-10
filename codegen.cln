@@ -367,9 +367,9 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 			emit (condition of ir if (ir)) to (out) in (expression context) with scope (scope).
 			append string ")) {\n" to (out).
 			emit (then of ir if (ir)) to (out) in (statement context) with scope (scope).
-			append string "\n} else {\n" to (out).
+			append string ";\n} else {\n" to (out).
 			emit (else of ir if (ir)) to (out) in (statement context) with scope (scope).
-			append string "}" to (out).
+			append string ";\n}" to (out).
 		} else {
 			emit (condition of ir if (ir)) to (out) in (context) with scope (scope).
 			emit (then of ir if (ir)) to (out) in (context) with scope (scope).
@@ -447,7 +447,7 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 			write line (scope).
 		}.
 	} else (if ((ir) is an ir literal) then {
-		if ((context) is an evaluation) then {
+		if ((context) is equal to (expression context)) then {
 			emit position (position of ir literal (ir)) to (out).
 			append string "value_make_string_from_c_string(" to (out).
 			append string (value of ir literal (ir)) to (out).
@@ -457,7 +457,7 @@ define procedure (emit (ir) to (out) in (context) with scope (scope)) to do {
 				else (false).
 		} else (false).
 	} else (if ((ir) is an ir number) then {
-		if ((context) is an evaluation) then {
+		if ((context) is equal to (expression context)) then {
 			emit position (position of ir number (ir)) to (out).
 			append string "value_make_number(" to (out).
 			append string (string of number (value of ir number (ir))) to (out).
