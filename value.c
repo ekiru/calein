@@ -27,7 +27,6 @@ void value_display_remaining_values(void) {
 		}
 		value_write(v);
 		printf("\n");
-		v = v->prev;
 	}
 #endif
 }
