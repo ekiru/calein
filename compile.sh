@@ -10,7 +10,7 @@ then
 	executer=lldb
 fi
 
-if [ "$CALEIN_MEMDEBUG" -eq 1 ]
+if [[ "$CALEIN_MEMDEBUG" -eq 1 ]]
 then
 	cflags="$cflags -D CALEIN_REF_DEBUG"
 fi
