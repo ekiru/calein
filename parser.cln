@@ -249,13 +249,15 @@ define procedure (parse (at start of expression)) to do {
 				else (if ((c) is equal to (close brace)) then {
 					set (again in sequence) to (false).
 					set (tree) to (make sequence (reverse list (children))).
+				} else (if ((c) is equal to (close paren)) then {
+					error "Unexpected close paren in sequence.".
 				} else {
 					unget character (c).
 					define variable (child) with initial value (parse (true)).
 					if (child)
 					then (set (children) to ((child), (children)))
 					else (false).
-				}).
+				})).
 			}.
 		} else (if ((c) is whitespace)
 			then (set (again) to (true))
