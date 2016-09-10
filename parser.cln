@@ -2,14 +2,22 @@ define variable (line number) with initial value #1.
 define variable (column number) with initial value #1.
 define variable (file name) with initial value "-".
 
+define variable (reading from string) with initial value (false).
 define variable (file to read from) with initial value (standard input).
+define variable (string to read from) with initial value (false).
+define variable (string offset for reading) with initial value #0.
 define variable (ungotten character) with initial value (false).
 define procedure (get character) to do {
 	define variable (tmp) with initial value (false).
 	if (ungotten character) then {
 		set (tmp) to (ungotten character).
 		set (ungotten character) to (false).
-	} else (set (tmp) to (read character from (file to read from))).
+	} else (if (reading from string) then {
+		if ((string offset for reading) < (length (string to read from))) then {
+			set (tmp) to (character at (string offset for reading) of (string to read from)).
+			set (string offset for reading) to ((string offset for reading) + #1).
+		} else (set (tmp) to (false)).
+	} else (set (tmp) to (read character from (file to read from)))).
 	if ((tmp) is equal to (new line)) then {
 		set (line number) to ((line number) + #1).
 		set (column number) to #1.
@@ -297,3 +305,9 @@ define procedure (parse file (f) with name (name)) to do {
 	reverse list (reversed syntax trees).
 }.	
 
+define procedure (parse string (s)) to do {
+	set (reading from string) to (true).
+	set (string to read from) to (s).
+	set (string offset for reading) to #0.
+	parse file (false) with name "<string>".
+}.
