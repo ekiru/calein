@@ -2,8 +2,6 @@ CFLAGS=-w
 .PHONY: all copy-stage0 check
 all: compiler
 
-parse: parse.o err.o parser.o str.o syntax.o
-
 compiler: compiler.o err.o str.o value.o
 
 compiler.o: caleinrtl.inc.c
